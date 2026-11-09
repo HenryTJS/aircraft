@@ -19,7 +19,7 @@
 | case 级评测 | **未开始** |
 | dashboard 合并 | **未开始**（看板仍在 `D:\shm\dashboard`） |
 | 调研语料 | 已并入 `survey/`：54 篇、1,154 页 |
-| F-MOC 初析 | 7 个 `.pridb`，时间轴 t85 58.8–84.4%；非 L1 口径，见 `docs/fmoc_initial.md` |
+| F-MOC 初析 | 7 个 `.pridb`；`t85_full` 58.8–84.4%，`t99` 覆盖 70.7–98.6%，active-window 81.1–85.6%；非 L1 口径，见 `docs/fmoc_initial.md` |
 
 诚实的说法：**这是一个 raw-only 的 SHM 工具层 + 一个 claim–evidence 校验器原型；还不是 workflow 合成系统。**
 
@@ -70,8 +70,8 @@ aircraft/
 - [ ] 时间门生效：查询时刻写入 `allowed_lifetime_max`；生产路径必须有 producer 填 `observed_lifetime_fraction`。
 - [ ] 清理 `examples/L1-03_t85.json`：删除 `l1/results` 来源和虚构的 `tools/compute_campaign_stats.py`；换成 raw 可算的试件（L1-06）。
 - [ ] `.pridb` 通用 frame builder：一次覆盖 L1 C1/C2 + L2，t85 从 raw 算。
-- [x] F-MOC 初析（7 个 CFRP 试件，Vallen `.pridb`）：时间轴 t50/t85、hits vs 能量对照，见 `docs/fmoc_initial.md`。
-- [ ] F-MOC 正式接入：cycle 轴/暂停掩码/mapping，核心代码 0 行；t85 标 `axis=time`，不与 L1 混比。
+- [x] F-MOC 初析（7 个 CFRP 试件，Vallen `.pridb`）：时间轴 t50/t85、`t99` 覆盖、hits vs 能量对照，见 `docs/fmoc_initial.md`。
+- [ ] F-MOC 正式接入：cycle 轴 / 暂停掩码 / `test_end` 覆盖 / mapping，核心代码 0 行；t85 标 `axis=time`，不与 L1 混比。
 - [ ] `skills/check` / `skills/metric` / `skills/compare` 的 stale 文案与编码问题修掉。
 
 ### P2 Dashboard 合并（第 4–8 周，可与 P1 并行）

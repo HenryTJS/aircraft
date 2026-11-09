@@ -64,9 +64,20 @@ python skills\metric\run.py --dataset L1 --gid L1-06 --json
 | 帧宽 > 600 s | 容差放宽到 ±0.3 pp，或重跑 600 s |
 | 无 FBG 的数据集（如 F-MOC） | 只能走时间轴，必须在 `scope.axis` 写 `time`；不得与 cycle 轴混比；F-MOC 初析见 `docs/fmoc_initial.md` |
 
+## 4.1 覆盖规则
+
+`t_x` 只有在 `coverage = t_last_valid / test_end >= 0.95` 时才可作为跨试件比较量。coverage < 0.95 时：
+
+- 必须同时报告 `coverage` 与 `t99`；
+- 状态标 `insufficient`，不得进入 claim；
+- `t85_active = t85_full / t99` 只能作敏感性分析，不是标准值。
+
+F-MOC 的 t99 为 **70.67–98.56%**，所以 `t85_full` 不可横向比；详见 `docs/fmoc_initial.md`。
+
 ## 5. 强制规则
 
 1. 任何 t50/t85 必须带 `convention`（`linear` / `step`）和 `frame_s`；缺省视为 `linear, 600`。
-2. 看板、报告、claim 三处必须是**同一个数**；看板 94.0 与 claim 93.76 不能并存。
+2. 看板、报告、claim 三处必须是**同一个数**；L1-06 的看板已由 94.0 改为 93.76（UI 93.8）。
 3. 旧表（`l1/results/l1_hi_crosslab.csv` 等）是步进口径；引用时必须注明，或按本标准重算。
 4. 结果表只能作 display-only；claim 必须来自 raw → `skills/metric` → `tool_result`。
+5. 任何 t_x 必须带 `coverage`（或 `t99`）；coverage < 0.95 的跨试件比较一律 `insufficient`。

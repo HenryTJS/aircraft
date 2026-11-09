@@ -79,6 +79,10 @@ def profile(path: Path, with_energy: bool = True) -> dict:
         return (t - t_min) / dur * 100.0 if dur and np.isfinite(dur) else float("nan")
 
     ones = np.ones(n, dtype=np.float64)
+    t50_hit = pct(_t_at(times, ones, 0.50))
+    t85_hit = pct(_t_at(times, ones, 0.85))
+    t99_hit = pct(_t_at(times, ones, 0.99))
+    last10 = float((times > t_max - 0.1 * dur).sum()) / n * 100.0
     out = {
         "specimen": path.stem,
         "n_hits": int(n),
@@ -86,8 +90,12 @@ def profile(path: Path, with_energy: bool = True) -> dict:
         "t_max_s": round(t_max, 2),
         "duration_h": round(dur / 3600.0, 2),
         "rate_hz": round(n / dur, 2) if dur else float("nan"),
-        "t50_hit_pct": round(pct(_t_at(times, ones, 0.50)), 2),
-        "t85_hit_pct": round(pct(_t_at(times, ones, 0.85)), 2),
+        "t50_hit_pct": round(t50_hit, 2),
+        "t85_hit_pct": round(t85_hit, 2),
+        "t99_hit_pct": round(t99_hit, 2),
+        "last10_share_pct": round(last10, 2),
+        "t85_active_pct": round(t85_hit / t99_hit * 100.0, 2) if (t99_hit > 0 and t85_hit <= t99_hit) else None,
+        "coverage_ok": bool(t99_hit >= 95.0),
         "t50_energy_pct": None,
         "t85_energy_pct": None,
         "energy_total": None,
@@ -125,11 +133,12 @@ def main(argv=None) -> int:
         w.writeheader()
         w.writerows(rows)
 
-    print("| specimen | n_hits | duration_h | rate_hz | t50_hit | t85_hit | t50_energy | t85_energy |")
-    print("|---|---:|---:|---:|---:|---:|---:|---:|")
+    print("| specimen | n_hits | duration_h | rate_hz | t50_hit | t85_hit | t99_hit | last10_share | t85_active | t85_energy |")
+    print("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
     for r in rows:
         print(f"| {r['specimen']} | {r['n_hits']} | {r['duration_h']} | {r['rate_hz']} | "
-              f"{r['t50_hit_pct']} | {r['t85_hit_pct']} | {r['t50_energy_pct']} | {r['t85_energy_pct']} |")
+              f"{r['t50_hit_pct']} | {r['t85_hit_pct']} | {r['t99_hit_pct']} | "
+              f"{r['last10_share_pct']} | {r['t85_active_pct']} | {r['t85_energy_pct']} |")
     print(f"\nwrote {out}")
     return 0
 
