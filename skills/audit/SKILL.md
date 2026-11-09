@@ -13,7 +13,7 @@
 ## 输入
 
 ```json
-{"graph": "examples/L1-03_t85.json"}
+{"graph": "examples/L1-06_t85.json"}
 ```
 
 `graph` 符合 `schema/claim_evidence.schema.json`。  
@@ -23,7 +23,7 @@
 
 ```json
 {
-  "graph": "examples/L1-03_t85.json",
+  "graph": "examples/L1-06_t85.json",
   "n_claims": 4,
   "n_evidence": 4,
   "n_failed": 0,
@@ -47,6 +47,6 @@
 ## 命令
 
 ```powershell
-python skills\audit\run.py --graph examples\L1-03_t85.json
+python skills\audit\run.py --graph examples\L1-06_t85.json
 python skills\audit\run.py --graph examples\invalid_missing_evidence.json --json
 ```

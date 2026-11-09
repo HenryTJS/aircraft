@@ -64,8 +64,9 @@ class TestSkills(unittest.TestCase):
         self.assertLess(r["data"]["t85_pct"], 96.0)
         self.assertTrue(r["data"]["raw_ae"].startswith("E:"))
 
+    @unittest.skipUnless(L1_DATA.exists(), "E:/l1 not mounted")
     def test_audit_pass(self):
-        r = run("audit", "--graph", "examples/L1-03_t85.json")
+        r = run("audit", "--graph", "examples/L1-06_t85.json")
         self.assertEqual(r["status"], "ok")
         self.assertEqual(r["data"]["n_failed"], 0)
 

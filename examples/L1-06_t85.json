@@ -1,0 +1,220 @@
+{
+  "schema_version": "1.0",
+  "graph_id": "G001",
+  "question": "L1-06 的 t50 / t85 是多少？在只看到寿命前 100% 数据时，这个结论是否成立？",
+  "created_at": "2026-11-09T20:31:05+08:00",
+  "policy": {
+    "require_evidence": true,
+    "allow_unsupported_claims": false,
+    "max_evidence_per_claim": 8,
+    "temporal_leakage_check": true,
+    "require_numeric_tool_evidence": true
+  },
+  "claims": [
+    {
+      "claim_id": "C001",
+      "text": "L1-06 的 AE 累积 hit 曲线 t85 为 93.76%。",
+      "claim_type": "numeric",
+      "subject": "L1-06",
+      "predicate": "t85_pct",
+      "value": 93.76,
+      "unit": "%",
+      "comparator": "eq",
+      "tolerance": 0.01,
+      "status": "supported",
+      "evidence_ids": [
+        "E001"
+      ],
+      "tool_call_ids": [
+        "T001"
+      ],
+      "scope": {
+        "gid": "L1-06",
+        "campaign": null,
+        "modality": "AE",
+        "cycle_min": 0,
+        "cycle_max": 202300,
+        "lifetime_min": 0,
+        "lifetime_max": 1
+      },
+      "allowed_lifetime_max": 1.0,
+      "missing_evidence": null,
+      "confidence": 0.99,
+      "created_by": "Analyst"
+    },
+    {
+      "claim_id": "C002",
+      "text": "L1-06 的 AE 累积 hit 曲线 t50 为 68.02%。",
+      "claim_type": "numeric",
+      "subject": "L1-06",
+      "predicate": "t50_pct",
+      "value": 68.02,
+      "unit": "%",
+      "comparator": "eq",
+      "tolerance": 0.01,
+      "status": "supported",
+      "evidence_ids": [
+        "E002"
+      ],
+      "tool_call_ids": [
+        "T001"
+      ],
+      "scope": {
+        "gid": "L1-06",
+        "campaign": null,
+        "modality": "AE",
+        "cycle_min": 0,
+        "cycle_max": 202300,
+        "lifetime_min": 0,
+        "lifetime_max": 1
+      },
+      "allowed_lifetime_max": 1.0,
+      "missing_evidence": null,
+      "confidence": 0.99,
+      "created_by": "Analyst"
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "E001",
+      "evidence_type": "tool_result",
+      "source": {
+        "kind": "tool",
+        "title": "L1-06 raw AE+FBG (linear,600s,load-mask)",
+        "tool_name": "metric.l1_t85",
+        "version": "0.1.0",
+        "authors": [],
+        "year": null,
+        "venue": null,
+        "doi": null,
+        "url": null,
+        "clause": null
+      },
+      "content": {
+        "metric": "t85_pct",
+        "value": 93.75795455603424,
+        "gid": "L1-06",
+        "n_f": 202300,
+        "convention": "linear,600s,load-mask",
+        "coverage": 1.0
+      },
+      "quote": null,
+      "locator": {
+        "file": "E:\\l1/L1-06/AE",
+        "page": null,
+        "section": null,
+        "table": null,
+        "figure": null,
+        "row": null,
+        "clause": null,
+        "char_start": null,
+        "char_end": null
+      },
+      "scope": {
+        "gid": "L1-06",
+        "campaign": null,
+        "modality": "AE",
+        "cycle_min": 0,
+        "cycle_max": 202300,
+        "lifetime_min": 0,
+        "lifetime_max": 1
+      },
+      "observed_lifetime_fraction": 1.0,
+      "tool_call_id": "T001",
+      "coverage": 1.0,
+      "retrieved_at": "2026-11-09T20:31:05+08:00",
+      "content_hash": null,
+      "reliability": "primary"
+    },
+    {
+      "evidence_id": "E002",
+      "evidence_type": "tool_result",
+      "source": {
+        "kind": "tool",
+        "title": "L1-06 raw AE+FBG (linear,600s,load-mask)",
+        "tool_name": "metric.l1_t85",
+        "version": "0.1.0",
+        "authors": [],
+        "year": null,
+        "venue": null,
+        "doi": null,
+        "url": null,
+        "clause": null
+      },
+      "content": {
+        "metric": "t50_pct",
+        "value": 68.02087545864892,
+        "gid": "L1-06",
+        "n_f": 202300,
+        "convention": "linear,600s,load-mask",
+        "coverage": 1.0
+      },
+      "quote": null,
+      "locator": {
+        "file": "E:\\l1/L1-06/AE",
+        "page": null,
+        "section": null,
+        "table": null,
+        "figure": null,
+        "row": null,
+        "clause": null,
+        "char_start": null,
+        "char_end": null
+      },
+      "scope": {
+        "gid": "L1-06",
+        "campaign": null,
+        "modality": "AE",
+        "cycle_min": 0,
+        "cycle_max": 202300,
+        "lifetime_min": 0,
+        "lifetime_max": 1
+      },
+      "observed_lifetime_fraction": 1.0,
+      "tool_call_id": "T001",
+      "coverage": 1.0,
+      "retrieved_at": "2026-11-09T20:31:05+08:00",
+      "content_hash": null,
+      "reliability": "primary"
+    }
+  ],
+  "edges": [
+    {
+      "claim_id": "C001",
+      "evidence_id": "E001",
+      "relation": "supports"
+    },
+    {
+      "claim_id": "C002",
+      "evidence_id": "E002",
+      "relation": "supports"
+    }
+  ],
+  "tool_calls": [
+    {
+      "tool_call_id": "T001",
+      "tool_name": "metric.l1_t85",
+      "arguments": {
+        "dataset": "L1",
+        "gid": "L1-06",
+        "frame_s": 600,
+        "convention": "linear,600s,load-mask"
+      },
+      "result": {
+        "t50_pct": 68.02087545864892,
+        "t85_pct": 93.75795455603424,
+        "n_f": 202300,
+        "hits": 6189719,
+        "n_frames": 303,
+        "coverage": 1.0
+      },
+      "created_at": "2026-11-09T20:31:05+08:00",
+      "elapsed_ms": 20470.1
+    }
+  ],
+  "verification": {
+    "status": "needs_review",
+    "summary": "populated by validate.py",
+    "checks": []
+  }
+}

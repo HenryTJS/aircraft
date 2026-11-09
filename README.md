@@ -12,7 +12,7 @@
 |---|---|
 | `skills/check` | 可用：raw 模态覆盖，不报 t85 |
 | `skills/metric` | 部分可用：L1 C3/C4 从 raw 算 t85；L1-06 = **93.76%**（标准见 `docs/metric_standard.md`） |
-| `skills/audit` | 可用：claim–evidence 校验（示例仍依赖 results，待修） |
+| `skills/audit` | 可用：绑定 `tool_call`、重跑工具、时间门/coverage；`L1-06` 示例已从 raw 生成 |
 | `skills/compare` | 暂停：返回 unsupported |
 | workflow / executor / verifier | **未开始** |
 | planner / 3B QLoRA | **未开始** |
@@ -35,6 +35,7 @@ aircraft/
 ├─ examples/
 ├─ tests/
 ├─ tools/
+│  ├─ build_claim_graph.py ← raw → claim 图
 │  └─ profile_fmoc.py    ← F-MOC `.pridb` 初析
 ├─ survey/               ← 54 篇 LLM/SHM 语料 + 综述 + 提案
 ├─ docs/
@@ -65,10 +66,10 @@ aircraft/
 
 ### P1 打通唯一真链（第 2–6 周）
 
-- [ ] `skills/metric` 输出自动生成 claim 图：`tool_result` 必须带 `tool_call_id`，claim/evidence/edges 不再手写。
-- [ ] `validate.py` 重跑工具：校验时执行 `tool_call` 并与 `evidence.content.value` 比对；没有绑定 `tool_call_id` 的 `tool_result` 直接 fail。
-- [ ] 时间门生效：查询时刻写入 `allowed_lifetime_max`；生产路径必须有 producer 填 `observed_lifetime_fraction`。
-- [ ] 清理 `examples/L1-03_t85.json`：删除 `l1/results` 来源和虚构的 `tools/compute_campaign_stats.py`；换成 raw 可算的试件（L1-06）。
+- [x] `skills/metric` 输出自动生成 claim 图：`tools/build_claim_graph.py` 生成 `tool_call` + 带 `tool_call_id` 的 evidence，claim/evidence/edges 不再手写。
+- [x] `validate.py` 重跑工具：校验时执行 `tool_call` 并与 `evidence.content.value` 比对；无绑定、无 coverage、工具不存在、篡改一致值都会 fail。
+- [x] 时间门生效：`--t-max 0.62` 生成图，`observed_lifetime_fraction=1.0` 被 `temporal_leakage` 拒绝；`--t-max 1.0` 通过。
+- [x] 清理旧示例：删除 `examples/L1-03_t85.json`；`L1-06_t85.json` 由 raw 生成，另加 `L1-06_t85_at062.json` 作时间门反例。
 - [ ] `.pridb` 通用 frame builder：一次覆盖 L1 C1/C2 + L2，t85 从 raw 算。
 - [x] F-MOC 初析（7 个 CFRP 试件，Vallen `.pridb`）：时间轴 t50/t85、`t99` 覆盖、hits vs 能量对照，见 `docs/fmoc_initial.md`。
 - [ ] F-MOC 正式接入：cycle 轴 / 暂停掩码 / `test_end` 覆盖 / mapping，核心代码 0 行；t85 标 `axis=time`，不与 L1 混比。
@@ -147,7 +148,7 @@ L1-03 属 C1（`.pridb`），raw reader 未接前**不可算**；看板 86.1 与
 cd D:\aircraft
 
 # 证据校验
-python validate.py examples\L1-03_t85.json
+python validate.py examples\L1-06_t85.json
 
 # 单元测试
 python -m unittest tests.test_validate -v
@@ -156,7 +157,12 @@ python -m unittest discover -s skills\tests -v
 # skill
 python skills\check\run.py --dataset L1 --gid L1-03
 python skills\metric\run.py --dataset L1 --gid L1-06
-python skills\audit\run.py --graph examples\L1-03_t85.json
+python skills\audit\run.py --graph examples\L1-06_t85.json
+
+# 从 raw 生成 claim 图（带 tool_call_id），再校验
+python tools\build_claim_graph.py --gid L1-06 --out examples\L1-06_t85.json
+python validate.py examples\L1-06_t85.json
+python validate.py examples\L1-06_t85_at062.json   rem 应 fail：时间门
 
 # 调研语料
 python rag.py query "t85 definition" -k 5

@@ -44,7 +44,9 @@ def envelope(skill: str, status: str, data: dict, warnings: list[str] | None = N
 
 
 def evidence(evidence_id: str, file: str, title: str, content: dict,
-             scope: dict, evidence_type: str = "dataset_metadata") -> dict:
+             scope: dict, evidence_type: str = "dataset_metadata",
+             tool_call_id: str | None = None,
+             coverage: float | None = None) -> dict:
     kind = "dataset" if evidence_type == "dataset_metadata" else "tool"
     return {
         "evidence_id": evidence_id,
@@ -76,6 +78,8 @@ def evidence(evidence_id: str, file: str, title: str, content: dict,
         },
         "scope": scope,
         "observed_lifetime_fraction": None,
+        "tool_call_id": tool_call_id,
+        "coverage": coverage,
         "retrieved_at": now(),
         "content_hash": None,
         "reliability": "primary",

@@ -177,7 +177,7 @@ skill 化的目标是：
 |---|---|---|
 | `check` | `python skills\check\run.py --dataset L1 --gid L1-03` | 原始模态覆盖、缺失；t85 交给 metric |
 | `metric` | `python skills\metric\run.py --dataset L1 --gid L1-06` | 从 raw DTA/FBG 算 t50/t85；v0 只支持 C3/C4 |
-| `audit` | `python skills\audit\run.py --graph examples\L1-03_t85.json` | 每个 claim 的出处、无证据/不一致项 |
+| `audit` | `python skills\audit\run.py --graph examples\L1-06_t85.json` | 每个 claim 的出处、无证据/不一致项 |
 | `compare` | 暂停到 raw metric 扩展到 campaign | 当前返回 `unsupported` |
 
 ### 后续（workflow 层）
@@ -204,9 +204,13 @@ aircraft/
 ├─ schema/
 │  └─ claim_evidence.schema.json
 ├─ examples/
-│  ├─ L1-03_t85.json
+│  ├─ L1-06_t85.json
+│  ├─ L1-06_t85_at062.json
 │  ├─ invalid_missing_evidence.json
 │  └─ invalid_temporal_leakage.json
+├─ tools/
+│  ├─ build_claim_graph.py ← raw → claim 图（带 tool_call_id）
+│  └─ profile_fmoc.py      ← F-MOC .pridb 初析
 ├─ tests/
 │  └─ test_validate.py
 ├─ survey/           ← 54 篇语料 + 综述 + 提案（原 llm_survey）
@@ -237,6 +241,8 @@ aircraft/
 
 1. `supported` claim 必须有 evidence；
 2. numeric/comparative claim 必须有匹配的 `tool_result`，数值在容差内；
+2a. `tool_result` 必须带 `tool_call_id`；validator 会重跑该工具，结果对不上直接 fail；
+2b. `tool_result` 必须带 `coverage`；`coverage < 0.95` 不得作跨试件 claim；
 3. literature/standard 必须有 `quote + locator`；
 4. 非数值 claim 必须有 `support_quote`，且能在引用原文中找到；
 5. evidence 的时间范围不能超过 claim 的 `allowed_lifetime_max`；
@@ -247,7 +253,7 @@ aircraft/
 
 ```powershell
 cd D:\aircraft
-python validate.py examples\L1-03_t85.json
+python validate.py examples\L1-06_t85.json
 ```
 
 ---
@@ -261,7 +267,8 @@ SHM/PHM 最危险的不是“答错”，而是“用未来数据回答早期问
 - 每个 claim 可带 `allowed_lifetime_max`；
 - 每条 tool_result evidence 带 `observed_lifetime_fraction`；
 - validator 检查 evidence 是否越过 claim 的时间上限；
-- 如果 `allowed_lifetime_max < 1` 且没有 supported 的 numeric claim，直接 fail。
+- `observed_lifetime_fraction=1.0` 的 full-life 证据，在 `allowed_lifetime_max < 1` 时直接 fail；
+- `tools/build_claim_graph.py --t-max 0.62` 就是这条门的可执行反例。
 
 这条规则比“RAG + 提示词”具体，也是专利交底书最值得写的部分。
 
@@ -338,7 +345,7 @@ SHM/PHM 最危险的不是“答错”，而是“用未来数据回答早期问
 cd D:\aircraft
 
 # 1. 校验证据图
-python validate.py examples\L1-03_t85.json
+python validate.py examples\L1-06_t85.json
 
 # 2. 单元测试
 python -m unittest tests.test_validate -v
@@ -350,7 +357,7 @@ python rag.py query "t85 definition" -k 5
 # 4. skill 契约
 python skills\check\run.py --dataset L1 --gid L1-03
 python skills\metric\run.py --dataset L1 --gid L1-06
-python skills\audit\run.py --graph examples\L1-03_t85.json
+python skills\audit\run.py --graph examples\L1-06_t85.json
 python -m unittest discover -s skills\tests -v
 
 ---

@@ -139,6 +139,17 @@
           "minimum": 0,
           "maximum": 1
         },
+        "tool_call_id": {
+          "type": ["string", "null"],
+          "pattern": "^T[0-9]{3,}$",
+          "description": "For tool_result evidence: the tool call that produced content.value."
+        },
+        "coverage": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Fraction of the lifetime actually observed by the tool; <0.95 blocks cross-specimen claims."
+        },
         "retrieved_at": { "type": "string", "format": "date-time" },
         "content_hash": { "type": ["string", "null"] },
         "reliability": {

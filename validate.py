@@ -2,7 +2,7 @@
 """Validate a SHM claim–evidence graph.
 
 Usage:
-    python validate.py examples/L1-03_t85.json
+    python validate.py examples/L1-06_t85.json
     python validate.py graph.json --json
     python validate.py graph.json --out graph.verified.json
 """
@@ -12,6 +12,7 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 from datetime import datetime
 from typing import Any
@@ -19,6 +20,7 @@ from typing import Any
 from jsonschema import Draft202012Validator
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = HERE
 DEFAULT_SCHEMA = os.path.join(HERE, "schema", "claim_evidence.schema.json")
 
 KIND_BY_TYPE = {
@@ -27,6 +29,36 @@ KIND_BY_TYPE = {
     "standard": "standard",
     "dataset_metadata": "dataset",
     "human_note": "human",
+}
+
+_TOOL_CACHE: dict[tuple[str, str], dict] = {}
+
+
+def _run_metric(args: dict) -> dict:
+    """Re-execute the raw metric for a tool call (cached per dataset/gid)."""
+    dataset = str(args.get("dataset", "L1"))
+    gid = str(args.get("gid", ""))
+    key = (dataset, gid)
+    if key in _TOOL_CACHE:
+        return _TOOL_CACHE[key]
+    cmd = [sys.executable, os.path.join(ROOT, "skills", "metric", "run.py"),
+           "--dataset", dataset, "--gid", gid, "--json"]
+    p = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True,
+                       encoding="utf-8", timeout=600)
+    try:
+        obj = json.loads(p.stdout)
+    except Exception as exc:
+        raise RuntimeError(f"metric output is not JSON: {p.stdout[:200]!r} / {p.stderr[:200]!r}") from exc
+    if obj.get("status") != "ok":
+        raise RuntimeError(f"metric status={obj.get('status')}: "
+                           f"{obj.get('data', {}).get('reason', '')}")
+    _TOOL_CACHE[key] = obj["data"]
+    return obj["data"]
+
+
+TOOL_RUNNERS = {
+    "metric.l1_t85": _run_metric,
+    "metric.l1_t50": _run_metric,
 }
 
 
@@ -130,6 +162,7 @@ def validate_graph(graph: dict, schema: dict) -> Report:
     c_by_id = {c["claim_id"]: c for c in claims}
     e_by_id = {e["evidence_id"]: e for e in evidence}
     t_ids = {t["tool_call_id"] for t in tool_calls}
+    t_by_id = {t["tool_call_id"]: t for t in tool_calls}
 
     # 3. edge references
     bad_edges = [x for x in edges
@@ -185,6 +218,58 @@ def validate_graph(graph: dict, schema: dict) -> Report:
             if ev["evidence_type"] in ("literature", "standard"):
                 ok, why = _locator_ok(ev)
                 rep.add("citation_locator", "pass" if ok else "fail", why, cid, eid)
+
+            # tool_result must be bound to a tool_call, and the tool must be
+            # re-executed; a self-consistent JSON is not enough.
+            if ev["evidence_type"] == "tool_result":
+                tcid = ev.get("tool_call_id")
+                metric = (ev.get("content") or {}).get("metric")
+                val = _num((ev.get("content") or {}).get("value"))
+                tol = _num(c.get("tolerance")) or 1e-6
+                if not tcid:
+                    rep.add("tool_call_binding", "fail",
+                            "tool_result has no tool_call_id", cid, eid)
+                elif tcid not in t_by_id:
+                    rep.add("tool_call_binding", "fail",
+                            f"{tcid} not in tool_calls", cid, eid)
+                else:
+                    tc = t_by_id[tcid]
+                    if ev["source"].get("tool_name") and ev["source"].get("tool_name") != tc.get("tool_name"):
+                        rep.add("tool_call_binding", "fail",
+                                f"source.tool_name {ev['source'].get('tool_name')} != {tc.get('tool_name')}",
+                                cid, eid)
+                    if metric is None or val is None:
+                        rep.add("tool_result_payload", "fail",
+                                "tool_result needs content.metric and content.value", cid, eid)
+                    else:
+                        trv = _num((tc.get("result") or {}).get(metric))
+                        if trv is None or abs(trv - val) > tol:
+                            rep.add("tool_result_match", "fail",
+                                    f"tool_call.result {metric}={trv} != evidence {val}", cid, eid)
+                        runner = TOOL_RUNNERS.get(tc.get("tool_name"))
+                        if runner is None:
+                            rep.add("tool_reexecution", "fail",
+                                    f"no runner for {tc.get('tool_name')}", cid, eid)
+                        else:
+                            try:
+                                res = runner(tc.get("arguments") or {})
+                                rv = _num(res.get(metric))
+                                if rv is None or abs(rv - val) > tol:
+                                    rep.add("tool_reexecution", "fail",
+                                            f"recomputed {metric}={rv} != evidence {val}", cid, eid)
+                                else:
+                                    rep.add("tool_reexecution", "pass",
+                                            f"recomputed {metric}={rv}", cid, eid)
+                            except Exception as exc:
+                                rep.add("tool_reexecution", "fail", str(exc), cid, eid)
+
+                cov = ev.get("coverage")
+                if cov is None:
+                    rep.add("coverage", "fail", "tool_result needs coverage", cid, eid)
+                elif float(cov) < 0.95:
+                    rep.add("coverage", "fail", f"coverage {cov} < 0.95", cid, eid)
+                else:
+                    rep.add("coverage", "pass", f"coverage {cov}", cid, eid)
 
             # temporal leakage
             if policy.get("temporal_leakage_check", True) and c.get("allowed_lifetime_max") is not None:

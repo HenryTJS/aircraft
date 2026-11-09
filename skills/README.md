@@ -95,7 +95,7 @@ cd D:\aircraft
 python skills\check\run.py --dataset L1 --gid L1-03
 python skills\metric\run.py --dataset L1 --gid L1-06
 python skills\compare\run.py --dataset L1 --a C1 --b C3 --metric t85
-python skills\audit\run.py --graph examples\L1-03_t85.json
+python skills\audit\run.py --graph examples\L1-06_t85.json
 ```
 
 每个脚本都支持 `--json`。
