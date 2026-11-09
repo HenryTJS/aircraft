@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.env
+
+# generated / large
+rag_index.pkl
+skills/cache/*.json
+survey/pdfs/
+dashboard/data/
+out/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

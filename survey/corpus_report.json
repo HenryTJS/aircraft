@@ -1,0 +1,21 @@
+{
+  "n_valid": 54,
+  "n_bad": 0,
+  "bad": [],
+  "queries": [
+    "PHM",
+    "SHM",
+    "aerospace",
+    "aircraft",
+    "aviation",
+    "certification",
+    "digital twin",
+    "engineering design",
+    "fault diagnosis",
+    "industrial agent",
+    "maintenance",
+    "manufacturing",
+    "multimodal time series"
+  ],
+  "total_mb": 201.5
+}

@@ -1,0 +1,25 @@
+{
+  "version": "0.1.0",
+  "skills": {
+    "check": {
+      "entry": "skills/check/run.py",
+      "contract": "skills/check/schema.json",
+      "doc": "skills/check/SKILL.md"
+    },
+    "compare": {
+      "entry": "skills/compare/run.py",
+      "contract": "skills/compare/schema.json",
+      "doc": "skills/compare/SKILL.md"
+    },
+    "audit": {
+      "entry": "skills/audit/run.py",
+      "contract": "skills/audit/schema.json",
+      "doc": "skills/audit/SKILL.md"
+    },
+    "metric": {
+      "entry": "skills/metric/run.py",
+      "contract": "skills/metric/schema.json",
+      "doc": "skills/metric/SKILL.md"
+    }
+  }
+}
