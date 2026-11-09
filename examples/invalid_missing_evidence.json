@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0",
-  "graph_id": "G901",
-  "question": "L1-03 的 AE t85 是多少？与 C1 中位相比如何？这个指标是离线还是在线？",
-  "created_at": "2026-10-27T19:35:00+08:00",
+  "graph_id": "G001",
+  "question": "L1-06 的 t50 / t85 是多少？在只看到寿命前 100% 数据时，这个结论是否成立？",
+  "created_at": "2026-11-09T20:31:05+08:00",
   "policy": {
     "require_evidence": true,
     "allow_unsupported_claims": false,
@@ -13,25 +13,25 @@
   "claims": [
     {
       "claim_id": "C001",
-      "text": "L1-03 的 AE 累积 hit 曲线 t85 为 86.4%。",
+      "text": "L1-06 的 AE 累积 hit 曲线 t85 为 93.76%。",
       "claim_type": "numeric",
-      "subject": "L1-03",
+      "subject": "L1-06",
       "predicate": "t85_pct",
-      "value": 86.4,
+      "value": 93.76,
       "unit": "%",
       "comparator": "eq",
-      "tolerance": 0.05,
+      "tolerance": 0.01,
       "status": "supported",
       "evidence_ids": [],
       "tool_call_ids": [
         "T001"
       ],
       "scope": {
-        "gid": "L1-03",
-        "campaign": "C1",
+        "gid": "L1-06",
+        "campaign": null,
         "modality": "AE",
         "cycle_min": 0,
-        "cycle_max": 152458,
+        "cycle_max": 202300,
         "lifetime_min": 0,
         "lifetime_max": 1
       },
@@ -42,94 +42,34 @@
     },
     {
       "claim_id": "C002",
-      "text": "L1-03 的 t85 比 C1 批次中位低 2.8 个百分点。",
-      "claim_type": "comparative",
-      "subject": "L1-03 vs C1",
-      "predicate": "delta_t85_pp",
-      "value": -2.8,
-      "unit": "pp",
-      "comparator": "lt",
-      "tolerance": 0.1,
+      "text": "L1-06 的 AE 累积 hit 曲线 t50 为 68.02%。",
+      "claim_type": "numeric",
+      "subject": "L1-06",
+      "predicate": "t50_pct",
+      "value": 68.02,
+      "unit": "%",
+      "comparator": "eq",
+      "tolerance": 0.01,
       "status": "supported",
       "evidence_ids": [
         "E002"
       ],
       "tool_call_ids": [
-        "T002"
+        "T001"
       ],
       "scope": {
-        "gid": "L1-03",
-        "campaign": "C1",
+        "gid": "L1-06",
+        "campaign": null,
         "modality": "AE",
         "cycle_min": 0,
-        "cycle_max": 152458,
+        "cycle_max": 202300,
         "lifetime_min": 0,
         "lifetime_max": 1
       },
       "allowed_lifetime_max": 1.0,
       "missing_evidence": null,
-      "confidence": 0.95,
+      "confidence": 0.99,
       "created_by": "Analyst"
-    },
-    {
-      "claim_id": "C003",
-      "text": "t85 是自归一化累积 hit 曲线达到终值 85% 时的寿命分数。",
-      "claim_type": "method",
-      "subject": "t85",
-      "predicate": "definition",
-      "value": null,
-      "unit": null,
-      "comparator": null,
-      "tolerance": null,
-      "status": "supported",
-      "evidence_ids": [
-        "E003"
-      ],
-      "tool_call_ids": [],
-      "scope": {
-        "gid": "ALL",
-        "campaign": null,
-        "modality": "MULTI",
-        "cycle_min": null,
-        "cycle_max": null,
-        "lifetime_min": null,
-        "lifetime_max": null
-      },
-      "allowed_lifetime_max": null,
-      "missing_evidence": null,
-      "confidence": 0.95,
-      "created_by": "Writer",
-      "support_quote": "The fraction at which the curve reaches x percent of its final value is denoted t_x."
-    },
-    {
-      "claim_id": "C004",
-      "text": "该 t85 使用记录终值 C(1) 归一化，因此是离线描述量，不能直接当作在线报警。",
-      "claim_type": "limitation",
-      "subject": "t85",
-      "predicate": "temporal_validity",
-      "value": "retrospective",
-      "unit": null,
-      "comparator": null,
-      "tolerance": null,
-      "status": "supported",
-      "evidence_ids": [
-        "E004"
-      ],
-      "tool_call_ids": [],
-      "scope": {
-        "gid": "ALL",
-        "campaign": null,
-        "modality": "MULTI",
-        "cycle_min": null,
-        "cycle_max": null,
-        "lifetime_min": null,
-        "lifetime_max": null
-      },
-      "allowed_lifetime_max": null,
-      "missing_evidence": null,
-      "confidence": 0.95,
-      "created_by": "Writer",
-      "support_quote": "It uses C(1), the final value of the completed record. It is therefore a retrospective descriptor."
     }
   ],
   "evidence": [
@@ -138,56 +78,8 @@
       "evidence_type": "tool_result",
       "source": {
         "kind": "tool",
-        "title": "L1 AE HI table",
-        "tool_name": "l1/results/l1_hi_ae.csv",
-        "version": "2026-10-23",
-        "authors": [],
-        "year": null,
-        "venue": null,
-        "doi": null,
-        "url": null,
-        "clause": null
-      },
-      "content": {
-        "metric": "t85_pct",
-        "value": 86.4,
-        "gid": "L1-03",
-        "variant": "cum_hits",
-        "n_f": 152458
-      },
-      "quote": null,
-      "locator": {
-        "file": "l1/results/l1_hi_ae.csv",
-        "page": null,
-        "section": null,
-        "table": null,
-        "figure": null,
-        "row": 1,
-        "clause": null,
-        "char_start": null,
-        "char_end": null
-      },
-      "scope": {
-        "gid": "L1-03",
-        "campaign": "C1",
-        "modality": "AE",
-        "cycle_min": 0,
-        "cycle_max": 152458,
-        "lifetime_min": 0,
-        "lifetime_max": 1
-      },
-      "observed_lifetime_fraction": 1.0,
-      "retrieved_at": "2026-10-27T19:35:00+08:00",
-      "content_hash": null,
-      "reliability": "primary"
-    },
-    {
-      "evidence_id": "E002",
-      "evidence_type": "tool_result",
-      "source": {
-        "kind": "tool",
-        "title": "C1 t85 median and delta",
-        "tool_name": "tools/compute_campaign_stats.py",
+        "title": "L1-06 raw AE+FBG (linear,600s,load-mask)",
+        "tool_name": "metric.l1_t85",
         "version": "0.1.0",
         "authors": [],
         "year": null,
@@ -197,16 +89,16 @@
         "clause": null
       },
       "content": {
-        "metric": "delta_t85_pp",
-        "value": -2.8,
-        "gid": "L1-03",
-        "campaign": "C1",
-        "campaign_median_t85_pct": 89.2,
-        "specimen_t85_pct": 86.4
+        "metric": "t85_pct",
+        "value": 93.75795455603424,
+        "gid": "L1-06",
+        "n_f": 202300,
+        "convention": "linear,600s,load-mask",
+        "coverage": 1.0
       },
       "quote": null,
       "locator": {
-        "file": "l1/results/l1_hi_ae.csv",
+        "file": "E:\\l1/L1-06/AE",
         "page": null,
         "section": null,
         "table": null,
@@ -217,47 +109,49 @@
         "char_end": null
       },
       "scope": {
-        "gid": "L1-03",
-        "campaign": "C1",
+        "gid": "L1-06",
+        "campaign": null,
         "modality": "AE",
         "cycle_min": 0,
-        "cycle_max": 152458,
+        "cycle_max": 202300,
         "lifetime_min": 0,
         "lifetime_max": 1
       },
       "observed_lifetime_fraction": 1.0,
-      "retrieved_at": "2026-10-27T19:35:00+08:00",
+      "tool_call_id": "T001",
+      "coverage": 1.0,
+      "retrieved_at": "2026-11-09T20:31:05+08:00",
       "content_hash": null,
       "reliability": "primary"
     },
     {
-      "evidence_id": "E003",
-      "evidence_type": "literature",
+      "evidence_id": "E002",
+      "evidence_type": "tool_result",
       "source": {
-        "kind": "paper",
-        "title": "A Confound-Aware Benchmark for Cross-Laboratory Fatigue Monitoring",
-        "tool_name": null,
-        "version": null,
-        "authors": [
-          "C. Yang",
-          "H. Gou",
-          "K. Li",
-          "J. Tang"
-        ],
-        "year": 2026,
-        "venue": "IWSHM 2027 (under review)",
+        "kind": "tool",
+        "title": "L1-06 raw AE+FBG (linear,600s,load-mask)",
+        "tool_name": "metric.l1_t85",
+        "version": "0.1.0",
+        "authors": [],
+        "year": null,
+        "venue": null,
         "doi": null,
         "url": null,
         "clause": null
       },
       "content": {
-        "definition": "the lifetime fraction at which the self-normalised cumulative curve reaches x percent of its final value"
+        "metric": "t50_pct",
+        "value": 68.02087545864892,
+        "gid": "L1-06",
+        "n_f": 202300,
+        "convention": "linear,600s,load-mask",
+        "coverage": 1.0
       },
-      "quote": "The fraction at which the curve reaches x percent of its final value is denoted t_x.",
+      "quote": null,
       "locator": {
-        "file": "docs/IWSHM2025_template_latex/IWSHM2027_paper.tex",
+        "file": "E:\\l1/L1-06/AE",
         "page": null,
-        "section": "II-C",
+        "section": null,
         "table": null,
         "figure": null,
         "row": null,
@@ -266,65 +160,18 @@
         "char_end": null
       },
       "scope": {
-        "gid": "ALL",
+        "gid": "L1-06",
         "campaign": null,
-        "modality": "MULTI",
-        "cycle_min": null,
-        "cycle_max": null,
-        "lifetime_min": null,
-        "lifetime_max": null
+        "modality": "AE",
+        "cycle_min": 0,
+        "cycle_max": 202300,
+        "lifetime_min": 0,
+        "lifetime_max": 1
       },
-      "observed_lifetime_fraction": null,
-      "retrieved_at": "2026-10-27T19:35:00+08:00",
-      "content_hash": null,
-      "reliability": "primary"
-    },
-    {
-      "evidence_id": "E004",
-      "evidence_type": "literature",
-      "source": {
-        "kind": "paper",
-        "title": "A Confound-Aware Benchmark for Cross-Laboratory Fatigue Monitoring",
-        "tool_name": null,
-        "version": null,
-        "authors": [
-          "C. Yang",
-          "H. Gou",
-          "K. Li",
-          "J. Tang"
-        ],
-        "year": 2026,
-        "venue": "IWSHM 2027 (under review)",
-        "doi": null,
-        "url": null,
-        "clause": null
-      },
-      "content": {
-        "limitation": "uses C(1), the final value, and is therefore retrospective"
-      },
-      "quote": "It uses C(1), the final value of the completed record. It is therefore a retrospective descriptor.",
-      "locator": {
-        "file": "docs/IWSHM2025_template_latex/IWSHM2027_paper.tex",
-        "page": null,
-        "section": "II-C",
-        "table": null,
-        "figure": null,
-        "row": null,
-        "clause": null,
-        "char_start": null,
-        "char_end": null
-      },
-      "scope": {
-        "gid": "ALL",
-        "campaign": null,
-        "modality": "MULTI",
-        "cycle_min": null,
-        "cycle_max": null,
-        "lifetime_min": null,
-        "lifetime_max": null
-      },
-      "observed_lifetime_fraction": null,
-      "retrieved_at": "2026-10-27T19:35:00+08:00",
+      "observed_lifetime_fraction": 1.0,
+      "tool_call_id": "T001",
+      "coverage": 1.0,
+      "retrieved_at": "2026-11-09T20:31:05+08:00",
       "content_hash": null,
       "reliability": "primary"
     }
@@ -334,54 +181,33 @@
       "claim_id": "C002",
       "evidence_id": "E002",
       "relation": "supports"
-    },
-    {
-      "claim_id": "C003",
-      "evidence_id": "E003",
-      "relation": "supports"
-    },
-    {
-      "claim_id": "C004",
-      "evidence_id": "E004",
-      "relation": "supports"
     }
   ],
   "tool_calls": [
     {
       "tool_call_id": "T001",
-      "tool_name": "l1_hi_lookup",
+      "tool_name": "metric.l1_t85",
       "arguments": {
-        "gid": "L1-03",
-        "variant": "cum_hits",
-        "metric": "t85_pct"
+        "dataset": "L1",
+        "gid": "L1-06",
+        "frame_s": 600,
+        "convention": "linear,600s,load-mask"
       },
       "result": {
-        "t85_pct": 86.4,
-        "n_f": 152458
+        "t50_pct": 68.02087545864892,
+        "t85_pct": 93.75795455603424,
+        "n_f": 202300,
+        "hits": 6189719,
+        "n_frames": 303,
+        "coverage": 1.0
       },
-      "created_at": "2026-10-27T19:35:00+08:00",
-      "elapsed_ms": 3.2
-    },
-    {
-      "tool_call_id": "T002",
-      "tool_name": "campaign_delta",
-      "arguments": {
-        "gid": "L1-03",
-        "campaign": "C1",
-        "metric": "t85_pct"
-      },
-      "result": {
-        "specimen": 86.4,
-        "campaign_median": 89.2,
-        "delta": -2.8
-      },
-      "created_at": "2026-10-27T19:35:00+08:00",
-      "elapsed_ms": 4.1
+      "created_at": "2026-11-09T20:31:05+08:00",
+      "elapsed_ms": 20470.1
     }
   ],
   "verification": {
     "status": "needs_review",
-    "summary": "intentionally invalid: missing evidence",
+    "summary": "populated by validate.py",
     "checks": []
   }
 }
