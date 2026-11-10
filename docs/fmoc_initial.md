@@ -63,6 +63,13 @@ python tools\profile_fmoc.py --config cases\fmoc.json --out docs\fmoc_initial.cs
 - 只分析了 AE；DIC 15 GB 未做位移/应变交叉验证。
 - F-MOC 原生任务是疲劳寿命预测；t85 是外加描述量，不是数据集标签。
 
+## 5.1 论文核对（2026-11-10）
+
+- 开放获取 F-MOC 论文（Komninos et al., *Data-Centric Engineering*，DOI `10.1017/dce.2025.10031`）已下载到 `docs/refs/fmoc_paper.pdf`（13 MB）。
+- 论文原文写的是 `cyclic loading with specified intervals and load transitions ... varying stress conditions`——**没有给加载频率/循环数**，而且不是单一恒幅。
+- 因此 **F-MOC 无法从论文重建 cycle 轴**；`axis=time` 仍是当前唯一诚实口径，`t85_dic` 仍只是 test_end 下界下的敏感性值。
+- 用户给的 DOI `10.4233/uuid:538558fb-...` 是 Eleftheroglou 2020 博士论文（TU Delft，28.9 MB，直链 `https://research.tudelft.nl/files/83535609/Thesis_1.pdf`）；当前环境被 Cloudflare 403 / 仓库超时，**未下载**。
+
 ## 6. 下一步
 
 1. **cycle 轴**：从论文/试验记录找加载频率；没有就仍保持 `axis=time`，不要伪造 cycle。

@@ -8,6 +8,7 @@ __pycache__/
 rag_index.pkl
 skills/cache/
 survey/pdfs/
+docs/refs/
 dashboard/data/
 out/
 *.log
