@@ -47,6 +47,8 @@ t_x = 100 * C^{-1}(x * C_end) / n_f
 | L1-14 | 52.85 | 83.56 | 83.6 | 83.8 |
 | L1-24 | 83.87 | 96.33 | 96.3 | 96.5 |
 
+C3/C4 全量 15 组的标准值见 [`docs/l1_c3c4_canonical.csv`](l1_c3c4_canonical.csv)（由 raw frame/cycle 缓存线性插值复算）。
+
 复算命令（需 `E:\l1` 挂载）：
 
 ```powershell

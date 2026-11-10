@@ -62,7 +62,7 @@ aircraft/
 - [x] `llm_survey/` 并入 `survey/`；`llm/` 展平到仓库根目录并删除；相关路径已调整。
 - [x] 冻结 t_x 读数标准：600 s 帧、FBG 负载掩码、线性插值；L1-06 t85 = **93.76%**（UI 93.8）。见 `docs/metric_standard.md`。
 - [x] 看板 L1-06 的 SNHI85 改为 **93.76**（UI 93.8），旧值保留在 `t85_step`；`data/L1-06.js`、`index_c3.js`、`index_l1v3.js` 已同步。
-- [ ] 其余 C3/C4 的 t85 按标准重算；C1/C2 已可算，看板 C1/C2 的旧值也需按 anchor 口径更新。
+- [x] C3/C4 全量 15 组按线性标准重算（`docs/l1_c3c4_canonical.csv`）；看板 `data/` 与 `index_c3/c4/l1v3` 已同步；C1/C2 看板旧值待按 anchor 口径重出。
 - [ ] 修 `skills/check/run.py`、`SKILLS.md`、`skills/*/SKILL.md` 的过期状态（`check` 里“metric 未实现”、`sys.path` 注释写 `D:\shm`、报告中文编码）。
 - [x] 建 git（`main` 分支）+ `requirements.txt`（`jsonschema / numpy / pdfplumber / scikit-learn / requests`）；大文件（`survey/pdfs/`、`rag_index.pkl`）不入库。
 
@@ -196,6 +196,7 @@ skill 层不直接读 `results/`；外部盘未挂载时，raw-data 测试会自
 - [`survey/README.md`](survey/README.md)：54 篇语料与使用注意
 - [`survey/SURVEY_AND_PROPOSALS.md`](survey/SURVEY_AND_PROPOSALS.md)：方法综述、空白、四个备选方案
 - [`docs/metric_standard.md`](docs/metric_standard.md)：t_x 读数标准与标准值
+- [`docs/l1_c3c4_canonical.csv`](docs/l1_c3c4_canonical.csv)：C3/C4 全量 15 组标准 t50/t85
 - [`docs/fmoc_initial.md`](docs/fmoc_initial.md)：F-MOC 7 个试件的初析、限制与下一步
 - `D:\shm\README.md` 与 `D:\shm\仓库地图.md`：数据、分析、结果口径
 - `D:\rul\README.md`：SN-CQR、可部署口径与边界
