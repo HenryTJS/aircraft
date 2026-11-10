@@ -72,7 +72,7 @@ aircraft/
 - [x] `validate.py` 重跑工具：校验时执行 `tool_call` 并与 `evidence.content.value` 比对；无绑定、无 coverage、工具不存在、篡改一致值都会 fail。
 - [x] 时间门生效：`--t-max 0.62` 生成图，`observed_lifetime_fraction=1.0` 被 `temporal_leakage` 拒绝；`--t-max 1.0` 通过。
 - [x] 清理旧示例：删除 `examples/L1-03_t85.json`；`L1-06_t85.json` 由 raw 生成，另加 `L1-06_t85_at062.json` 作时间门反例。
-- [x] `.pridb` metric：L1 C1/C2 用 DFOS/FBG anchor（多会话回退 time），L2 用 session→cycle 表；1s SQL bin + `skills/cache`，C2 首次 ~10 s、缓存 <1 s；L2 首次约 4 min/254 M hits。
+- [x] `.pridb` metric：L1 C1/C2 用 DFOS/FBG anchor（多会话回退 time），L2 用 session→cycle 表；1s SQL bin + `skills/cache`，C2 首次 ~10 s、缓存 <1 s；L2 首次分钟级（9.9 GB 第二段会 >10 min），缓存后 <1 s。
 - [x] F-MOC 接入（配置驱动）：`cases/fmoc.json` + `tools/profile_fmoc.py --config`；输出 `t85_full/t99/t85_dic/coverage/test_end_uncertain`，`axis=time`。
 - [ ] F-MOC cycle 轴 / pause 掩码：数据无循环计数与独立失效时刻；`test_end` 暂以 DIC 末帧下界标注。
 - [ ] `skills/check` / `skills/metric` / `skills/compare` 的 stale 文案与编码问题修掉。
