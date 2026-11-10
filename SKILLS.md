@@ -125,7 +125,7 @@ API planner
 |---|---|
 | `adapters/raw.py` | 已完成：只读原始目录，不读 results |
 | `skills/check` | 已完成：原始模态覆盖，不报 t85 |
-| `skills/metric` | 部分完成：L1 DTA（C3/C4）可算；C1/C2、L2 未接 |
+| `skills/metric` | 完成：L1 C3/C4 `.DTA` + L1 C1/C2/L2 `.pridb`（1 s bin + cache） |
 | `skills/compare` | 暂停：没有 raw campaign metric，返回 unsupported |
 | `skills/audit` | 已完成：claim–evidence 校验 |
 | workflow schema / executor / verifier | **未开始** |
@@ -176,7 +176,7 @@ skill 化的目标是：
 | skill | 命令示例 | 输出 |
 |---|---|---|
 | `check` | `python skills\check\run.py --dataset L1 --gid L1-03` | 原始模态覆盖、缺失；t85 交给 metric |
-| `metric` | `python skills\metric\run.py --dataset L1 --gid L1-06` | 从 raw DTA/FBG 算 t50/t85；v0 只支持 C3/C4 |
+| `metric` | `python skills\metric\run.py --dataset L1 --gid L1-06` | 从 raw DTA/pridb 算 t50/t85；C1/C2 用 anchor，L2 用 cycle 表 |
 | `audit` | `python skills\audit\run.py --graph examples\L1-06_t85.json` | 每个 claim 的出处、无证据/不一致项 |
 | `compare` | 暂停到 raw metric 扩展到 campaign | 当前返回 `unsupported` |
 
@@ -381,7 +381,7 @@ python -m unittest discover -s skills\tests -v
 
 ## 11. 下一步
 
-1. `check` / `metric` / `audit` 已落地；`metric` 先补 C1/C2 `.pridb` 和 L2 test-stop；
+1. `check` / `metric` / `audit` 已落地；`metric` 已补 C1/C2/L2 `.pridb`；
 2. 建 `workflow/`：原语、executor、verifier，不碰模型；
 3. 用 API 教师生成候选 workflow，verifier 过滤；
 4. 训练 3B QLoRA planner，做规则 / API / 本地 ablation；

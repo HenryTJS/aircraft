@@ -3,7 +3,7 @@
 ## 目的
 
 从**原始数据**计算 t50/t85，不读结果表。  
-当前 v0 只支持 L1 的 `.DTA` 组（C3/C4）。
+支持 L1 C3/C4 `.DTA`、L1 C1/C2 与 L2 `.pridb`（1 s bin + cycle anchor）。
 
 ## 输入
 
@@ -39,6 +39,14 @@
 5. `cycle = cumsum(g_load × 600 × f)`，`HI = cumsum(hits) / total`；
 6. 在 `HI=0.50/0.85` 处插值，得到 t50/t85。
 
+### `.pridb` 路径
+
+1. SQL `GROUP BY Time/1e7` 得到 1 s bin（`skills/metric/pridb.py`）；
+2. L1 C1/C2 单会话用 DFOS/FBG anchor 映射到 cycle；多会话回退 time 轴并带 `warning`；
+3. L2 用 session→cycle 表映射；
+4. bin 中心线性插值；输出 `axis`、`load_mask`、`coverage`；
+5. bin 缓存到 `skills/cache/pridb_*.npz`，按文件 mtime/size 失效。
+
 ## 规则
 
 1. skill 层不读 `results/`；本 skill 只读 `E:/l1/<gid>/AE` 和 `FBG`；
@@ -48,8 +56,9 @@
 
 ## 当前边界
 
-- C1/C2 是 `.pridb`，还没有 raw frame builder；
-- L2/PHM2019 不支持；
+- C1/C2 `.pridb` 已接入：单会话走 anchor，多会话回退 time；
+- L2 `.pridb` 已接入：session→cycle 表；首次扫描慢，缓存后 <1 s；
+- PHM2019 没有 t85，仍不支持；
 - C4 文件大，单组计算慢，先缓存、不批量跑。
 
 ## 命令
@@ -57,4 +66,6 @@
 ```powershell
 python skills\metric\run.py --dataset L1 --gid L1-06
 python skills\metric\run.py --dataset L1 --gid L1-06 --json
+python skills\metric\run.py --dataset L1 --gid L1-49 --json   rem C2 .pridb
+python skills\metric\run.py --dataset L2 --gid L2-07 --json   rem L2 .pridb
 ```

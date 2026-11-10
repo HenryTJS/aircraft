@@ -1,0 +1,14 @@
+{
+  "id": "fmoc",
+  "name": "F-MOC (TU Delft, CFRP, run-to-failure)",
+  "root": "E:/fmoc/ACOUSTIC",
+  "dic_dir": "E:/fmoc/DIC",
+  "format": "vallen_pridb",
+  "settype": 2,
+  "time_factor": 1e-07,
+  "bin_s": 1.0,
+  "axis": "time",
+  "indicator": "hits",
+  "specimens": ["spec1", "spec2", "spec3", "spec4", "spec5", "spec6", "spec7"],
+  "notes": "No cycle log and no test-end ground truth; DIC last frame is a lower bound only."
+}

@@ -6,7 +6,7 @@ __pycache__/
 
 # generated / large
 rag_index.pkl
-skills/cache/*.json
+skills/cache/
 survey/pdfs/
 dashboard/data/
 out/

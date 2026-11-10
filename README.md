@@ -11,7 +11,7 @@
 | 模块 | 状态 |
 |---|---|
 | `skills/check` | 可用：raw 模态覆盖，不报 t85 |
-| `skills/metric` | 部分可用：L1 C3/C4 从 raw 算 t85；L1-06 = **93.76%**（标准见 `docs/metric_standard.md`） |
+| `skills/metric` | 可用：L1 C3/C4 `.DTA` + L1 C1/C2/L2 `.pridb`；L1-06 = **93.76%**；`.pridb` 1s bin 缓存后 <1s |
 | `skills/audit` | 可用：绑定 `tool_call`、重跑工具、时间门/coverage；`L1-06` 示例已从 raw 生成 |
 | `skills/compare` | 暂停：返回 unsupported |
 | workflow / executor / verifier | **未开始** |
@@ -19,7 +19,7 @@
 | case 级评测 | **未开始** |
 | dashboard 合并 | **未开始**（看板仍在 `D:\shm\dashboard`） |
 | 调研语料 | 已并入 `survey/`：54 篇、1,154 页 |
-| F-MOC 初析 | 7 个 `.pridb`；`t85_full` 58.8–84.4%，`t99` 覆盖 70.7–98.6%，active-window 81.1–85.6%；非 L1 口径，见 `docs/fmoc_initial.md` |
+| F-MOC 接入 | 7 个 `.pridb`；`t85_full` 58.8–84.4%，`t85_dic` 81.4–86.2%（DIC 末帧为 test_end 下界）；非 L1 口径，见 `docs/fmoc_initial.md` |
 
 诚实的说法：**这是一个 raw-only 的 SHM 工具层 + 一个 claim–evidence 校验器原型；还不是 workflow 合成系统。**
 
@@ -34,6 +34,8 @@ aircraft/
 ├─ schema/               ← claim–evidence schema
 ├─ examples/
 ├─ tests/
+├─ cases/
+│  └─ fmoc.json          ← 未知数据集配置
 ├─ tools/
 │  ├─ build_claim_graph.py ← raw → claim 图
 │  └─ profile_fmoc.py    ← F-MOC `.pridb` 初析
@@ -60,7 +62,7 @@ aircraft/
 - [x] `llm_survey/` 并入 `survey/`；`llm/` 展平到仓库根目录并删除；相关路径已调整。
 - [x] 冻结 t_x 读数标准：600 s 帧、FBG 负载掩码、线性插值；L1-06 t85 = **93.76%**（UI 93.8）。见 `docs/metric_standard.md`。
 - [x] 看板 L1-06 的 SNHI85 改为 **93.76**（UI 93.8），旧值保留在 `t85_step`；`data/L1-06.js`、`index_c3.js`、`index_l1v3.js` 已同步。
-- [ ] 其余 C3/C4 的 t85 按标准重算；C1/C2 的 `.pridb` reader 未接前保持 display-only。
+- [ ] 其余 C3/C4 的 t85 按标准重算；C1/C2 已可算，看板 C1/C2 的旧值也需按 anchor 口径更新。
 - [ ] 修 `skills/check/run.py`、`SKILLS.md`、`skills/*/SKILL.md` 的过期状态（`check` 里“metric 未实现”、`sys.path` 注释写 `D:\shm`、报告中文编码）。
 - [x] 建 git（`main` 分支）+ `requirements.txt`（`jsonschema / numpy / pdfplumber / scikit-learn / requests`）；大文件（`survey/pdfs/`、`rag_index.pkl`）不入库。
 
@@ -70,9 +72,9 @@ aircraft/
 - [x] `validate.py` 重跑工具：校验时执行 `tool_call` 并与 `evidence.content.value` 比对；无绑定、无 coverage、工具不存在、篡改一致值都会 fail。
 - [x] 时间门生效：`--t-max 0.62` 生成图，`observed_lifetime_fraction=1.0` 被 `temporal_leakage` 拒绝；`--t-max 1.0` 通过。
 - [x] 清理旧示例：删除 `examples/L1-03_t85.json`；`L1-06_t85.json` 由 raw 生成，另加 `L1-06_t85_at062.json` 作时间门反例。
-- [ ] `.pridb` 通用 frame builder：一次覆盖 L1 C1/C2 + L2，t85 从 raw 算。
-- [x] F-MOC 初析（7 个 CFRP 试件，Vallen `.pridb`）：时间轴 t50/t85、`t99` 覆盖、hits vs 能量对照，见 `docs/fmoc_initial.md`。
-- [ ] F-MOC 正式接入：cycle 轴 / 暂停掩码 / `test_end` 覆盖 / mapping，核心代码 0 行；t85 标 `axis=time`，不与 L1 混比。
+- [x] `.pridb` metric：L1 C1/C2 用 DFOS/FBG anchor（多会话回退 time），L2 用 session→cycle 表；1s SQL bin + `skills/cache`，C2 首次 ~6 s、缓存 <1 s；L2 首次约 4 min/254 M hits。
+- [x] F-MOC 接入（配置驱动）：`cases/fmoc.json` + `tools/profile_fmoc.py --config`；输出 `t85_full/t99/t85_dic/coverage/test_end_uncertain`，`axis=time`。
+- [ ] F-MOC cycle 轴 / pause 掩码：数据无循环计数与独立失效时刻；`test_end` 暂以 DIC 末帧下界标注。
 - [ ] `skills/check` / `skills/metric` / `skills/compare` 的 stale 文案与编码问题修掉。
 
 ### P2 Dashboard 合并（第 4–8 周，可与 P1 并行）
@@ -98,7 +100,7 @@ aircraft/
 
 ### P4 Demo 与结题（第 10–16 周）
 
-- [ ] 3 个成功 case：L1-06 t85、`main/016` 在线进度、XJTU Bearing3_2 RUL；1 个拒答：L1-03（C1 `.pridb` reader 未接）。
+- [ ] 3 个成功 case：L1-06 t85、`main/016` 在线进度、XJTU Bearing3_2 RUL；1 个拒答：L1-06 在 `t=0.62`（时间门）。
 - [ ] 现场离线：本地 Ollama + 预生成缓存；API 失败自动降级。
 - [ ] 防翻车清单：数字可点开、图由数据生成、无 evidence 的句子不出现、免责声明“仅供研究演示，不构成适航/维修放行依据”。
 - [ ] 录屏 + 答辩演练 + 结题报告。
@@ -120,8 +122,9 @@ C^{-1}   = 相邻两帧之间线性插值
 | L1-13 | 67.94 | 93.05 | 93.1 |
 | L1-14 | 52.85 | 83.56 | 83.8 |
 | L1-24 | 83.87 | 96.33 | 96.5 |
+| L1-03（C1，anchor） | 48.72 | **85.36** | 86.1 |
 
-L1-03 属 C1（`.pridb`），raw reader 未接前**不可算**；看板 86.1 与示例 86.4 都是 display-only，不能作 claim。
+L1-03 属 C1，已可算：canonical **85.36%**（anchor/cycle，t50 48.72）；看板 86.1 与旧示例 86.4 是旧步进口径，需按本标准更新。
 
 详见 [`docs/metric_standard.md`](docs/metric_standard.md)。
 

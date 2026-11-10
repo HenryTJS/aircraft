@@ -1,30 +1,35 @@
 # -*- coding: utf-8 -*-
 """Profile Vallen `.pridb` AE files on a time axis (F-MOC initial analysis).
 
-This is deliberately generic: it only assumes the AMSY-6 schema used by
-F-MOC (`ae_data` with `SetType=2` hits, `Time` in 100 ns, `Eny` energy).
+Generic: it assumes the AMSY-6 schema (`ae_data` with `SetType=2` hits, `Time`
+in 100 ns, `Eny` energy) and takes root/settype/time factor from a JSON config.
 
-It does NOT build a cycle axis and does NOT remove pauses: F-MOC has no
-cycle log in the file, and the markers only record a few suspend/resume
-events.  The t_x values below are therefore "time fraction of the observed
-AE window", not the cycle-fraction standard used for L1 (see
-`docs/metric_standard.md`).
+It does NOT build a cycle axis and does NOT remove pauses: F-MOC has no cycle
+log in the file, and the markers only record a few suspend/resume events.
+
+DIC timestamps are used only as a **lower bound** for test end:
+`dic_last_s` is the last `specN_<seconds>.tif`; if AE ends after it, test end
+is not identifiable from the supplied files, and `t85_dic` is a sensitivity,
+not a correction.
 
 Usage:
-    python tools/profile_fmoc.py --root E:/fmoc/ACOUSTIC --out docs/fmoc_initial.csv
+    python tools/profile_fmoc.py --config cases/fmoc.json --out docs/fmoc_initial.csv
+    python tools/profile_fmoc.py --root E:/fmoc/ACOUSTIC --dic-dir E:/fmoc/DIC
 """
 from __future__ import annotations
 
 import argparse
 import csv
+import json
+import re
 import sqlite3
 import sys
 from pathlib import Path
 
 import numpy as np
 
-TIME_BASE = 1e7  # .pridb Time unit: 100 ns
 SETTYPE_HIT = 2
+TIME_FACTOR = 1e-7  # 100 ns -> s
 
 
 def _t_at(times: np.ndarray, weights: np.ndarray, frac: float) -> float:
@@ -41,36 +46,49 @@ def _t_at(times: np.ndarray, weights: np.ndarray, frac: float) -> float:
     return float(times[j - 1]) + f * (float(times[j]) - float(times[j - 1]))
 
 
-def profile(path: Path, with_energy: bool = True) -> dict:
+def _dic_last_s(dic_dir: Path | None, stem: str) -> float | None:
+    if not dic_dir or not dic_dir.exists():
+        return None
+    vals = []
+    for p in dic_dir.glob(f"{stem}_*.tif"):
+        m = re.search(r"_(\d+)\.tif$", p.name)
+        if m:
+            vals.append(int(m.group(1)))
+    return float(max(vals)) if vals else None
+
+
+def profile(path: Path, dic_dir: Path | None = None,
+            settype: int = SETTYPE_HIT, time_factor: float = TIME_FACTOR,
+            with_energy: bool = True) -> dict:
     con = sqlite3.connect(str(path))
     cur = con.cursor()
     n, mi, ma = cur.execute(
         "SELECT COUNT(*), MIN(Time), MAX(Time) FROM ae_data WHERE SetType=?",
-        (SETTYPE_HIT,),
+        (settype,),
     ).fetchone()
     if not n:
         con.close()
         return {"specimen": path.stem, "n_hits": 0}
     times = np.fromiter(
         (r[0] for r in cur.execute(
-            "SELECT Time FROM ae_data WHERE SetType=?", (SETTYPE_HIT,))),
+            "SELECT Time FROM ae_data WHERE SetType=?", (settype,))),
         dtype=np.int64, count=n,
     )
     energy = None
     if with_energy:
         energy = np.fromiter(
             ((r[0] or 0) for r in cur.execute(
-                "SELECT Eny FROM ae_data WHERE SetType=?", (SETTYPE_HIT,))),
+                "SELECT Eny FROM ae_data WHERE SetType=?", (settype,))),
             dtype=np.float64, count=n,
         )
     con.close()
 
     order = np.argsort(times, kind="mergesort")
-    times = times[order].astype(np.float64) / TIME_BASE
+    times = times[order].astype(np.float64) * time_factor
     if energy is not None:
         energy = energy[order]
 
-    t_min, t_max = float(mi) / TIME_BASE, float(ma) / TIME_BASE
+    t_min, t_max = float(mi) * time_factor, float(ma) * time_factor
     dur = t_max - t_min
     if dur <= 0:
         dur = float("nan")
@@ -79,10 +97,12 @@ def profile(path: Path, with_energy: bool = True) -> dict:
         return (t - t_min) / dur * 100.0 if dur and np.isfinite(dur) else float("nan")
 
     ones = np.ones(n, dtype=np.float64)
-    t50_hit = pct(_t_at(times, ones, 0.50))
-    t85_hit = pct(_t_at(times, ones, 0.85))
-    t99_hit = pct(_t_at(times, ones, 0.99))
+    t50 = _t_at(times, ones, 0.50)
+    t85 = _t_at(times, ones, 0.85)
+    t99 = _t_at(times, ones, 0.99)
     last10 = float((times > t_max - 0.1 * dur).sum()) / n * 100.0
+    dic_last = _dic_last_s(dic_dir, path.stem)
+
     out = {
         "specimen": path.stem,
         "n_hits": int(n),
@@ -90,12 +110,20 @@ def profile(path: Path, with_energy: bool = True) -> dict:
         "t_max_s": round(t_max, 2),
         "duration_h": round(dur / 3600.0, 2),
         "rate_hz": round(n / dur, 2) if dur else float("nan"),
-        "t50_hit_pct": round(t50_hit, 2),
-        "t85_hit_pct": round(t85_hit, 2),
-        "t99_hit_pct": round(t99_hit, 2),
+        "t50_s": round(t50, 2),
+        "t85_s": round(t85, 2),
+        "t99_s": round(t99, 2),
+        "t50_hit_pct": round(pct(t50), 2),
+        "t85_hit_pct": round(pct(t85), 2),
+        "t99_hit_pct": round(pct(t99), 2),
         "last10_share_pct": round(last10, 2),
-        "t85_active_pct": round(t85_hit / t99_hit * 100.0, 2) if (t99_hit > 0 and t85_hit <= t99_hit) else None,
-        "coverage_ok": bool(t99_hit >= 95.0),
+        "t85_active_pct": round(t85 / t99 * 100.0, 2) if t99 > 0 else None,
+        "coverage_ok": bool(pct(t99) >= 95.0),
+        "dic_last_s": round(dic_last, 1) if dic_last else None,
+        "dic_last_h": round(dic_last / 3600.0, 2) if dic_last else None,
+        "ae_over_dic": round(t_max / dic_last, 3) if dic_last else None,
+        "t85_dic_pct": round(t85 / dic_last * 100.0, 2) if dic_last else None,
+        "test_end_uncertain": (dic_last is None or t_max > dic_last * 1.02),
         "t50_energy_pct": None,
         "t85_energy_pct": None,
         "energy_total": None,
@@ -109,12 +137,23 @@ def profile(path: Path, with_energy: bool = True) -> dict:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--config", default=None)
     ap.add_argument("--root", default="E:/fmoc/ACOUSTIC")
+    ap.add_argument("--dic-dir", default="E:/fmoc/DIC")
     ap.add_argument("--out", default="docs/fmoc_initial.csv")
     ap.add_argument("--no-energy", action="store_true")
     args = ap.parse_args(argv)
 
     root = Path(args.root)
+    dic_dir = Path(args.dic_dir)
+    settype, time_factor = SETTYPE_HIT, TIME_FACTOR
+    if args.config:
+        cfg = json.loads(Path(args.config).read_text(encoding="utf-8"))
+        root = Path(cfg.get("root", root))
+        dic_dir = Path(cfg.get("dic_dir", dic_dir))
+        settype = int(cfg.get("settype", settype))
+        time_factor = float(cfg.get("time_factor", time_factor))
+
     files = sorted(root.glob("*.pridb"))
     if not files:
         print(f"no .pridb under {root}", file=sys.stderr)
@@ -123,22 +162,22 @@ def main(argv=None) -> int:
     rows = []
     for p in files:
         print(f"[profile] {p.name}", file=sys.stderr)
-        rows.append(profile(p, with_energy=not args.no_energy))
+        rows.append(profile(p, dic_dir, settype, time_factor,
+                            with_energy=not args.no_energy))
 
-    fields = list(rows[0].keys())
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w", newline="", encoding="utf-8") as fh:
-        w = csv.DictWriter(fh, fieldnames=fields)
+        w = csv.DictWriter(fh, fieldnames=list(rows[0].keys()))
         w.writeheader()
         w.writerows(rows)
 
-    print("| specimen | n_hits | duration_h | rate_hz | t50_hit | t85_hit | t99_hit | last10_share | t85_active | t85_energy |")
-    print("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
+    print("| specimen | n_hits | duration_h | t85_full | t99 | t85_active | dic_last_h | t85_dic | ae/dic |")
+    print("|---|---:|---:|---:|---:|---:|---:|---:|---:|")
     for r in rows:
-        print(f"| {r['specimen']} | {r['n_hits']} | {r['duration_h']} | {r['rate_hz']} | "
-              f"{r['t50_hit_pct']} | {r['t85_hit_pct']} | {r['t99_hit_pct']} | "
-              f"{r['last10_share_pct']} | {r['t85_active_pct']} | {r['t85_energy_pct']} |")
+        print(f"| {r['specimen']} | {r['n_hits']} | {r['duration_h']} | "
+              f"{r['t85_hit_pct']} | {r['t99_hit_pct']} | {r['t85_active_pct']} | "
+              f"{r['dic_last_h']} | {r['t85_dic_pct']} | {r['ae_over_dic']} |")
     print(f"\nwrote {out}")
     return 0
 

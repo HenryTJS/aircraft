@@ -18,7 +18,7 @@ L2_DATA = Path("E:/l2")
 def run(script: str, *args: str) -> dict:
     cmd = [PY, str(ROOT / "skills" / script / "run.py"), *args, "--json"]
     p = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True,
-                       encoding="utf-8", errors="replace", timeout=60)
+                       encoding="utf-8", errors="replace", timeout=300)
     try:
         return json.loads(p.stdout)
     except json.JSONDecodeError as exc:
@@ -63,6 +63,28 @@ class TestSkills(unittest.TestCase):
         self.assertGreater(r["data"]["t85_pct"], 90.0)
         self.assertLess(r["data"]["t85_pct"], 96.0)
         self.assertTrue(r["data"]["raw_ae"].startswith("E:"))
+
+    @unittest.skipUnless(L1_DATA.exists(), "E:/l1 not mounted")
+    def test_metric_l1_c2_pridb(self):
+        r = run("metric", "--dataset", "L1", "--gid", "L1-49")
+        self.assertEqual(r["status"], "ok")
+        d = r["data"]
+        self.assertEqual(d["source_format"], "pridb")
+        self.assertEqual(d["axis"], "cycle")
+        self.assertGreater(d["t85_pct"], 0.0)
+        self.assertLess(d["t85_pct"], 100.0)
+        self.assertGreater(d["coverage"], 0.9)
+
+    @unittest.skipUnless(L2_DATA.exists() and os.environ.get("SHM_SLOW_TESTS"),
+                         "set SHM_SLOW_TESTS=1 to scan L2 .pridb")
+    def test_metric_l2_pridb(self):
+        r = run("metric", "--dataset", "L2", "--gid", "L2-07")
+        self.assertEqual(r["status"], "ok")
+        d = r["data"]
+        self.assertEqual(d["source_format"], "pridb")
+        self.assertEqual(d["axis"], "cycle")
+        self.assertGreater(d["t85_pct"], 0.0)
+        self.assertLess(d["t85_pct"], 100.0)
 
     @unittest.skipUnless(L1_DATA.exists(), "E:/l1 not mounted")
     def test_audit_pass(self):
