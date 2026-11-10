@@ -61,7 +61,7 @@ python skills\metric\run.py --dataset L1 --gid L1-06 --json
 | 数据 | 状态 |
 |---|---|
 | L1 C3/C4（`.DTA`） | **适用**；600 s 帧，容差 ±0.1 pp |
-| L1 C1/C2（`.pridb`） | **可算**：单会话用 DFOS/FBG anchor（cycle），多会话回退 time 并带 `warning`；1 s bin；C1-03=85.36、C2-49=91.90 |
+| L1 C1/C2（`.pridb`） | **可算**：HI_AE anchor（500-cycle，单/多会话均可用）；线性插值；L1-03=85.17、L1-49=82.24 |
 | L2（`.pridb`） | **可算**：session→cycle 表；1 s bin；L2-07=67.57；首次扫描慢，缓存后 <1 s |
 | 帧宽 > 600 s | 容差放宽到 ±0.3 pp，或重跑 600 s |
 | 无 FBG 的数据集（如 F-MOC） | 只能走时间轴，必须在 `scope.axis` 写 `time`；不得与 cycle 轴混比；`t85_dic` 81.4–86.2%（DIC 末帧为 test_end 下界），`t85_full` 不可横向比；见 `docs/fmoc_initial.md` |
@@ -78,9 +78,9 @@ F-MOC 的 t99 为 **70.67–98.56%**，所以 `t85_full` 不可横向比；详�
 
 ## 4.2 `.pridb` 补充口径
 
-- **L1 C1/C2**：单会话用 DFOS/FBG 锚（`evaluate_l1_hi_ae._cycle_of`）把时间映射到 cycle，并裁掉冲击前/寿命外 hit；多会话（如 L1-04）暂回退 time 轴，输出带 `warning`。
+- **L1 C1/C2**：用 `evaluate_l1_hi_ae.hi_of_group` 的 500-cycle anchor（DFOS/FBG），并裁掉冲击前/寿命外 hit；单/多会话都走这条。1 s bin 仅在 anchor 缺失时 fallback。
 - **L2**：用 `skills/metric/pridb.py` 的 session→cycle 表（与 `l2/scripts/l2_ae_scan.py` 同源），逐文件把时间映射到 cycle。
-- **1 s bin**：SQL `GROUP BY Time/1e7`，`t_x` 在 bin 中心上线性插值；与逐 hit 的差异 <0.01 pp。
+- **1 s bin**：L2 与 fallback 使用 SQL `GROUP BY Time/1e7`，`t_x` 在 bin 中心上线性插值；与逐 hit 的差异 <0.01 pp。
 - **缓存**：`skills/cache/pridb_<stem>_<size>_<mtime>.npz`，按文件 mtime/size 失效；首次扫描慢，之后 <1 s。删缓存可重建。
 
 ## 5. 强制规则

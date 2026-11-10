@@ -41,10 +41,10 @@
 
 ### `.pridb` 路径
 
-1. SQL `GROUP BY Time/1e7` 得到 1 s bin（`skills/metric/pridb.py`）；
-2. L1 C1/C2 单会话用 DFOS/FBG anchor 映射到 cycle；多会话回退 time 轴并带 `warning`；
-3. L2 用 session→cycle 表映射；
-4. bin 中心线性插值；输出 `axis`、`load_mask`、`coverage`；
+1. L1 C1/C2 用 `evaluate_l1_hi_ae.hi_of_group` 的 **500-cycle HI_AE anchor**（DFOS/FBG），线性插值；
+2. L2 用 session→cycle 表映射，1 s bin（SQL `GROUP BY` 或 `np.bincount`）；
+3. anchor 缺失时才回退 time 轴，输出带 `warning`；
+4. 输出 `axis`、`load_mask`、`coverage`；
 5. bin 缓存到 `skills/cache/pridb_*.npz`，按文件 mtime/size 失效。
 
 ## 规则

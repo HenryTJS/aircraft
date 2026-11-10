@@ -69,7 +69,7 @@ class TestSkills(unittest.TestCase):
         r = run("metric", "--dataset", "L1", "--gid", "L1-49")
         self.assertEqual(r["status"], "ok")
         d = r["data"]
-        self.assertEqual(d["source_format"], "pridb")
+        self.assertEqual(d["source_format"], "pridb-anchor")
         self.assertEqual(d["axis"], "cycle")
         self.assertGreater(d["t85_pct"], 0.0)
         self.assertLess(d["t85_pct"], 100.0)

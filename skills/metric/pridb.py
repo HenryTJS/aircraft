@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
-"""Raw `.pridb` metric for L1 C1/C2 and L2 (binned read; no FBG mask).
+"""Raw `.pridb` metric for L1 C1/C2 and L2.
 
-Why binned
-----------
-Reading millions of `Time` rows into Python was the bottleneck (L2-04 >10 min).
-SQLite aggregates in-place: `GROUP BY Time/1e7` returns ~tens of thousands of
-1 s bins, and t85 on 1 s bins differs from per-hit t85 by <0.01 pp here.  The
-anchor (`evaluate_l1_hi_ae._cycle_of`) is applied to bin centres and weighted
-by bin counts.
+C1/C2 use the project's HI_AE anchor series (500-cycle bins, DFOS/FBG anchor):
+`evaluate_l1_hi_ae.hi_of_group` is the single source, so metric and dashboard
+return the same number.
+
+L2 (and any anchor fallback) uses binned reads.  Reading millions of `Time`
+rows into Python was the bottleneck (L2-04 >10 min); SQLite aggregates
+in-place or `np.bincount` bins the stream.
 
 Axis choices
 ------------
-- L1 C1/C2: cycle anchor (DFOS/FBG) on single-session records; time fallback
-  for multi-session or missing anchor, with `warning`.
-- L2: session→cycle table, mapped from bin time to cycle.
+- L1 C1/C2: cycle axis, 500-cycle anchor; linear t_x.
+- L2: session→cycle table, 1 s bins.
+- fallback: time axis with `warning`.
 
 Every output carries `axis`, `load_mask`, `coverage`.
 """
@@ -133,6 +133,34 @@ def compute_l1_pridb(gid: str) -> dict:
     files = sorted(ae.glob("*.pridb")) if ae.exists() else []
     if not files:
         raise ValueError(f"no .pridb under {ae}")
+
+    # C1/C2: use the project's HI_AE anchor pipeline (500-cycle bins, linear
+    # interpolation).  This is the same series the dashboard/report uses.
+    try:
+        import evaluate_l1_hi_ae as e
+        from datasets import N_F
+        s = e.hi_of_group(gid)
+        if s is not None:
+            cyc = np.asarray(s['cyc'], dtype=float)
+            cnt = np.asarray(s['hit_bin'], dtype=float)
+            if len(cyc) >= 2 and cnt.sum() > 0:
+                n_f = float(s['n_f'])
+                t50 = _t_at(cyc, cnt, 0.50)
+                t85 = _t_at(cyc, cnt, 0.85)
+                return {
+                    "gid": gid, "dataset": "L1", "source_format": "pridb-anchor",
+                    "n_f": int(n_f), "n_frames": int(len(cyc)),
+                    "hits": int(cnt.sum()), "n_files": len(files),
+                    "f_hz": None,
+                    "t50_pct": t50 / n_f * 100.0,
+                    "t85_pct": t85 / n_f * 100.0,
+                    "frame_s": None,
+                    "axis": "cycle", "load_mask": "dfos/fbg anchor (500cyc)",
+                    "coverage": float(s['cov']), "bin_s": 500.0,
+                    "raw_ae": str(ae),
+                }
+    except Exception:
+        pass
 
     t_all, c_all = [], []
     off = 0.0
