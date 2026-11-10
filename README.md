@@ -17,7 +17,7 @@
 | workflow / executor / verifier | **未开始** |
 | planner / 3B QLoRA | **未开始** |
 | case 级评测 | **未开始** |
-| dashboard 合并 | **未开始**（看板仍在 `D:\shm\dashboard`） |
+| dashboard | **已迁入** `aircraft/dashboard`；`data/` 不入库，生成器通过 `AIRCRAFT_ROOT` 写回 |
 | 调研语料 | 已并入 `survey/`：54 篇、1,154 页 |
 | F-MOC 接入 | 7 个 `.pridb`；`t85_full` 58.8–84.4%，`t85_dic` 81.4–86.2%（DIC 末帧为 test_end 下界）；非 L1 口径，见 `docs/fmoc_initial.md` |
 
@@ -46,7 +46,7 @@ aircraft/
 ├─ validate.py
 ├─ rag.py
 ├─ rag_index.pkl
-├─ dashboard/            ← 待从 D:\shm\dashboard 迁入
+├─ dashboard/            ← 回放看板（已迁入；data/ 不入库）
 ├─ web/                  ← 待建：分析/对话/证据链/报告
 └─ app.py                ← 待建：本地服务
 ```
@@ -79,7 +79,7 @@ aircraft/
 
 ### P2 Dashboard 合并（第 4–8 周，可与 P1 并行）
 
-- [ ] `dashboard/`（`index.html` / `alignment.html` / `assets/` / `data/`）迁入 `aircraft`；生成器留在 `shm`，加 `--out` 或 `tools/sync_dashboard.py`，不要 fork 生成器。
+- [x] `dashboard/`（`index.html` / `alignment.html` / `assets/` / `data/`）迁入 `aircraft`；生成器留在 `shm`，通过 `AIRCRAFT_ROOT` 写回，不 fork。
 - [ ] 补 `data/index.js` + 24 组主样本包；确认顶栏出现 5 个数据集（主样本 + C1–C4）。
 - [ ] 加公开 API + `postMessage` + URL 深链（`?ds=&gid=&t=`）。
 - [ ] 数据 manifest：`schema_version / generated_at / source / raw_hash / evidence_grade`。
@@ -197,6 +197,7 @@ skill 层不直接读 `results/`；外部盘未挂载时，raw-data 测试会自
 - [`survey/SURVEY_AND_PROPOSALS.md`](survey/SURVEY_AND_PROPOSALS.md)：方法综述、空白、四个备选方案
 - [`docs/metric_standard.md`](docs/metric_standard.md)：t_x 读数标准与标准值
 - [`docs/l1_c3c4_canonical.csv`](docs/l1_c3c4_canonical.csv)：C3/C4 全量 15 组标准 t50/t85
+- [`dashboard/README.md`](dashboard/README.md)：回放看板、数据集与重建方式
 - [`docs/l1_c1c2_canonical.csv`](docs/l1_c1c2_canonical.csv)：C1/C2 14 组 anchor 标准 t50/t85
 - [`docs/fmoc_initial.md`](docs/fmoc_initial.md)：F-MOC 7 个试件的初析、限制与下一步
 - `D:\shm\README.md` 与 `D:\shm\仓库地图.md`：数据、分析、结果口径
