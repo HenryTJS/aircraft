@@ -147,6 +147,7 @@ def validate_graph(graph: dict, schema: dict) -> Report:
     edges = graph["edges"]
     tool_calls = graph.get("tool_calls", [])
     policy = graph.get("policy", {})
+    temporal_mode = str(policy.get("temporal_mode", "streaming"))
 
     # 2. unique ids
     for name, items, key in (
@@ -271,17 +272,28 @@ def validate_graph(graph: dict, schema: dict) -> Report:
                 else:
                     rep.add("coverage", "pass", f"coverage {cov}", cid, eid)
 
-            # temporal leakage
+            # temporal gate. streaming: evidence may not observe beyond the
+            # allowed lifetime. retrospective: the quoted value must itself
+            # lie inside the allowed lifetime; the evidence is explicitly a
+            # completed-test, full-life observation rather than an online one.
             if policy.get("temporal_leakage_check", True) and c.get("allowed_lifetime_max") is not None:
                 allowed = float(c["allowed_lifetime_max"])
-                observed = ev.get("observed_lifetime_fraction")
-                ev_max = (ev.get("scope") or {}).get("lifetime_max")
-                if observed is not None and float(observed) > allowed + 1e-9:
-                    rep.add("temporal_leakage", "fail",
-                            f"observed {observed} > allowed {allowed}", cid, eid)
-                if ev_max is not None and float(ev_max) > allowed + 1e-9:
-                    rep.add("temporal_leakage", "fail",
-                            f"evidence lifetime_max {ev_max} > allowed {allowed}", cid, eid)
+                if temporal_mode == "retrospective":
+                    v = _num(c.get("value"))
+                    if (c.get("unit") == "%" and v is not None
+                            and allowed < 1.0 and v > allowed * 100.0 + 1e-9):
+                        rep.add("temporal_leakage", "fail",
+                                f"retrospective value {v}% > allowed {allowed:.0%}",
+                                cid, eid)
+                else:
+                    observed = ev.get("observed_lifetime_fraction")
+                    ev_max = (ev.get("scope") or {}).get("lifetime_max")
+                    if observed is not None and float(observed) > allowed + 1e-9:
+                        rep.add("temporal_leakage", "fail",
+                                f"observed {observed} > allowed {allowed}", cid, eid)
+                    if ev_max is not None and float(ev_max) > allowed + 1e-9:
+                        rep.add("temporal_leakage", "fail",
+                                f"evidence lifetime_max {ev_max} > allowed {allowed}", cid, eid)
 
         # non-numeric claims must quote a phrase that actually appears in a
         # literature/standard evidence item; a bare citation is not enough.

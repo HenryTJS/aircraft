@@ -6,31 +6,38 @@
 - 定位：LLM 只做“语义编译 + 叙述”，数值由确定性工具算，`validator` 决定能不能交。
 - 不是“一个模型吃所有数据”，而是“有限原语 + LLM 组合 + 确定性执行 + 验证器”。
 
-## 0. 当前状态（2026-11-09）
+## 0. 当前状态（2026-11-23）
 
 | 模块 | 状态 |
 |---|---|
 | `skills/check` | 可用：raw 模态覆盖，不报 t85 |
 | `skills/metric` | 可用：L1 C3/C4 `.DTA` + L1 C1/C2/L2 `.pridb`；L1-06 = **93.76%**；`.pridb` 1s bin 缓存后 <1s |
+| `skills/fbg` | **已实现，待验证**：raw FBG 应变剖面/载荷窗，输出形状指标，不输出 t85 |
+| `skills/dfos` | **已实现，待验证**：C1/C2 块级 HI 与预警 cycle；饱和标记；不是空间定位 |
+| `skills/pzt` | **已实现，待验证**：raw PZT 导波退相关 t50/t85、TOF 漂移；慢，且 t85=100 多为删失 |
 | `skills/audit` | 可用：绑定 `tool_call`、重跑工具、时间门/coverage；`L1-06` 示例已从 raw 生成 |
 | `skills/compare` | 暂停：返回 unsupported |
-| workflow / executor / verifier | **未开始** |
-| planner / 3B QLoRA | **未开始** |
+| workflow / executor | **未开始** |
+| verifier | 原型：`validate.py` 已重跑工具；L1-06 Web 切片已用 |
+| planner | **受限语义编译器**：DeepSeek 实调已通过（`source=llm`，热请求约 1.5 s）；无 endpoint 时规则回退；模型不产出数字 |
+| 3B QLoRA | **未开始** |
 | case 级评测 | **未开始** |
 | dashboard | **已迁入** `aircraft/dashboard`；`data/` 不入库，生成器通过 `AIRCRAFT_ROOT` 写回 |
+| `web/app.py` | **L1-06 垂直切片 + 受限 planner**：FastAPI 壳 + `/api/ask` + 时间门 + 问题输入 + 证据抽屉；只支持 L1-06 |
 | 调研语料 | 已并入 `survey/`：54 篇、1,154 页 |
 | F-MOC 接入 | 7 个 `.pridb`；`t85_full` 58.8–84.4%，`t85_dic` 81.4–86.2%（DIC 末帧为 test_end 下界）；非 L1 口径，见 `docs/fmoc_initial.md` |
 
-诚实的说法：**这是一个 raw-only 的 SHM 工具层 + 一个 claim–evidence 校验器原型；还不是 workflow 合成系统。**
+诚实的说法：**这是一个 raw-only 的 SHM 工具层 + claim–evidence 校验器 + 受限 planner 的单 case 垂直切片；还不是多 case 的 workflow 合成系统。**
 
 ## 1. 目录
 
 ```text
 aircraft/
 ├─ README.md
+├─ .env.example          ← LLM endpoint/model/key 模板；.env 不入库
 ├─ SKILLS.md             ← skill 层、证据契约、边界（原 llm/README.md）
 ├─ adapters/             ← 只读 raw 的 L1/L2/PHM2019 adapter
-├─ skills/               ← check / metric / compare / audit
+├─ skills/               ← check / metric / fbg / dfos / pzt / compare / audit
 ├─ schema/               ← claim–evidence schema
 ├─ examples/
 ├─ tests/
@@ -47,8 +54,11 @@ aircraft/
 ├─ rag.py
 ├─ rag_index.pkl
 ├─ dashboard/            ← 回放看板（已迁入；data/ 不入库）
-├─ web/                  ← 待建：分析/对话/证据链/报告
-└─ app.py                ← 待建：本地服务
+└─ web/
+   ├─ app.py             ← FastAPI 壳 + /api/ask（当前只开 L1-06）
+   ├─ planner.py         ← 问题 → 白名单计划；LLM 可选，规则回退
+   ├─ tests/             ← test_api.py / test_planner.py
+   └─ static/            ← assistant.js / assistant.css（注入看板，不新做页面）
 ```
 
 ## 2. 待办清单（六个月，demo + 报告口径）
@@ -64,7 +74,7 @@ aircraft/
 - [x] 看板 L1-06 的 SNHI85 改为 **93.76**（UI 93.8），旧值保留在 `t85_step`；`data/L1-06.js`、`index_c3.js`、`index_l1v3.js` 已同步。
 - [x] C3/C4 全量 15 组按线性标准重算（`docs/l1_c3c4_canonical.csv`）；C1/C2 14 组按 HI_AE anchor（500-cycle）线性重出（`docs/l1_c1c2_canonical.csv`）；看板 `data/` 与 `index_c1/c2/c3/c4/l1v3` 已同步。
 - [ ] 修 `skills/check/run.py`、`SKILLS.md`、`skills/*/SKILL.md` 的过期状态（`check` 里“metric 未实现”、`sys.path` 注释写 `D:\shm`、报告中文编码）。
-- [x] 建 git（`main` 分支）+ `requirements.txt`（`jsonschema / numpy / pdfplumber / scikit-learn / requests`）；大文件（`survey/pdfs/`、`rag_index.pkl`）不入库。
+- [x] 建 git（`main` 分支）+ `requirements.txt`（`jsonschema / numpy / pdfplumber / scikit-learn / requests / fastapi / uvicorn / httpx / pandas / scipy / matplotlib`）；大文件（`survey/pdfs/`、`rag_index.pkl`）不入库。
 
 ### P1 打通唯一真链（第 2–6 周）
 
@@ -80,8 +90,11 @@ aircraft/
 ### P2 Dashboard 合并（第 4–8 周，可与 P1 并行）
 
 - [x] `dashboard/`（`index.html` / `alignment.html` / `assets/` / `data/`）迁入 `aircraft`；生成器留在 `shm`，通过 `AIRCRAFT_ROOT` 写回，不 fork。
+- [x] 最小垂直切片：`web/app.py` 只开 L1-06，FastAPI 壳 + `/api/ask` + URL 深链 + 回顾性时间门 + 证据抽屉；不新做页面。
+- [x] 受限语义编译器：问题 → 白名单计划（t85/t50/unsupported）；LLM 只编译计划，不产出数字；无 endpoint 或越界时规则回退；前端有问题输入与 planner 来源。
+- [x] `/api/ask` 内 verifier 独立重跑 metric，不复用 API 的 raw metric 缓存；首次冷启动约 30 s，之后同进程毫秒级。
 - [ ] 补 `data/index.js` + 24 组主样本包；确认顶栏出现 5 个数据集（主样本 + C1–C4）。
-- [ ] 加公开 API + `postMessage` + URL 深链（`?ds=&gid=&t=`）。
+- [ ] 加公开 API + `postMessage` + URL 深链（`?ds=&gid=&t=`）；切片只做了 API 与 URL，`postMessage` 未做。
 - [ ] 数据 manifest：`schema_version / generated_at / source / raw_hash / evidence_grade`。
 - [ ] 来源徽标：`display-only`（结果表口径）vs `raw-derived`（可作证据）；demo 的 3 个 case 从 raw 重出包。
 - [ ] **时间游标 = 信息边界**：拖到 `t` 时，`allowed_lifetime_max=t`；85% 之后的曲线变灰，标注“被时间门挡住”。
@@ -155,11 +168,16 @@ python validate.py examples\L1-06_t85.json
 
 # 单元测试
 python -m unittest tests.test_validate -v
+python -m unittest web.tests.test_planner -v
+python -m unittest web.tests.test_api -v
 python -m unittest discover -s skills\tests -v
 
 # skill
 python skills\check\run.py --dataset L1 --gid L1-03
 python skills\metric\run.py --dataset L1 --gid L1-06
+python skills\fbg\run.py --gid L1-03 --json
+python skills\dfos\run.py --gid L1-49 --json
+python skills\pzt\run.py --gid L1-06 --json   rem 慢，先单组
 python skills\audit\run.py --graph examples\L1-06_t85.json
 
 # 从 raw 生成 claim 图（带 tool_call_id），再校验
@@ -169,6 +187,23 @@ python validate.py examples\L1-06_t85_at062.json   rem 应 fail：时间门
 
 # 调研语料
 python rag.py query "t85 definition" -k 5
+
+# Web 切片（当前只开 L1-06；回顾性时间门）
+# 首次冷启动要解析 raw DTA 两次：API 算一次 + verifier 独立重跑一次，约 30 s；之后同一进程内为毫秒级
+python -m uvicorn web.app:app --host 127.0.0.1 --port 8000
+# 浏览器打开：
+# http://127.0.0.1:8000/?ds=c3&gid=L1-06&t=0.95&assistant=1
+# t=0.62 应被拒，t=0.95 应通过；t=0.93 仍会被拒（t85=93.76）
+
+# 可选 LLM 语义编译器（OpenAI-compatible；不配置则规则回退）
+# 方式 A：复制 .env.example 为 .env，填入 base/model/key；.env 已被 gitignore
+#   copy .env.example .env
+# 方式 B：在当前 PowerShell 设置环境变量
+$env:SHM_LLM_BASE_URL = "https://api.deepseek.com/v1"
+$env:SHM_LLM_MODEL = "deepseek-chat"
+$env:SHM_LLM_API_KEY = "sk-..."   # 不要提交
+# 本地 Ollama 则用 http://127.0.0.1:11434/v1 + qwen2.5:7b。
+# 环境变量或 .env 变更后重启 uvicorn。
 ```
 
 ## 7. 数据位置

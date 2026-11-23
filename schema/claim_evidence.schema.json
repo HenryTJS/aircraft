@@ -50,6 +50,12 @@
         "allow_unsupported_claims": { "type": "boolean", "default": false },
         "max_evidence_per_claim": { "type": "integer", "minimum": 1, "default": 8 },
         "temporal_leakage_check": { "type": "boolean", "default": true },
+        "temporal_mode": {
+          "type": "string",
+          "enum": ["streaming", "retrospective"],
+          "default": "streaming",
+          "description": "streaming checks evidence observation time; retrospective checks the quoted value against allowed_lifetime_max."
+        },
         "require_numeric_tool_evidence": { "type": "boolean", "default": true }
       }
     },

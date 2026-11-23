@@ -126,10 +126,14 @@ API planner
 | `adapters/raw.py` | 已完成：只读原始目录，不读 results |
 | `skills/check` | 已完成：原始模态覆盖，不报 t85 |
 | `skills/metric` | 完成：L1 C3/C4 `.DTA` + L1 C1/C2/L2 `.pridb`（1 s bin + cache） |
+| `skills/fbg` | 已实现，待验证：raw FBG 应变剖面/载荷窗；窗口轴，不输出 t85 |
+| `skills/dfos` | 已实现，待验证：C1/C2 块级 HI 与预警 cycle；饱和标记；不是空间定位 |
+| `skills/pzt` | 已实现，待验证：raw PZT 导波退相关 t50/t85、TOF 漂移；慢，t85=100 多为删失 |
 | `skills/compare` | 暂停：没有 raw campaign metric，返回 unsupported |
 | `skills/audit` | 已完成：claim–evidence 校验 |
-| workflow schema / executor / verifier | **未开始** |
-| API planner | **未开始** |
+| workflow schema / executor | **未开始** |
+| verifier | 原型：`validate.py` 重跑工具、时间门、coverage；L1-06 Web 切片已用 |
+| API planner | 受限语义编译器已接 `/api/ask`；只做 t85/t50/unsupported，无多步 workflow |
 | 本地 3B QLoRA | **未开始** |
 | case 级评测 | **未开始**；旧 40/11/16 问答评测已删除 |
 

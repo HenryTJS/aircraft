@@ -20,6 +20,21 @@
       "entry": "skills/metric/run.py",
       "contract": "skills/metric/schema.json",
       "doc": "skills/metric/SKILL.md"
+    },
+    "fbg": {
+      "entry": "skills/fbg/run.py",
+      "contract": "skills/fbg/schema.json",
+      "doc": "skills/fbg/SKILL.md"
+    },
+    "dfos": {
+      "entry": "skills/dfos/run.py",
+      "contract": "skills/dfos/schema.json",
+      "doc": "skills/dfos/SKILL.md"
+    },
+    "pzt": {
+      "entry": "skills/pzt/run.py",
+      "contract": "skills/pzt/schema.json",
+      "doc": "skills/pzt/SKILL.md"
     }
   }
 }
