@@ -68,6 +68,7 @@ def compute(gid: str) -> dict:
         "modality": "FBG",
         "source_format": "raw-fbg-profile",
         "axis": "window",
+        "cycle_anchor": None,
         "n_f": n_f,
         "n_windows": n,
         "n_channels": int(prof.shape[1]) if prof.ndim == 2 else 0,
@@ -88,7 +89,7 @@ def compute(gid: str) -> dict:
         "FBG 轴是加载窗，不是寿命分数；不能把窗口序号直接当 cycle 或 RUL。",
     ]
     if n_f == 0:
-        warnings.append("没有 n_f，无法把窗口轴映射到寿命分数。")
+        warnings.append("没有 n_f，无法校验寿命覆盖；即使有 n_f，也还需要加载窗到循环的同步锚。")
     if data["shape_rob25_max"] is not None and data["shape_rob25_max"] > 0:
         warnings.append("shape_rob25 是相对前 25% 窗口中位剖面的 L1 距离，越大表示漂移越强。")
 
@@ -112,6 +113,7 @@ def compute(gid: str) -> dict:
             "shape_rob25_last": data["shape_rob25_last"],
             "centroid_drift": data["centroid_drift"],
             "axis": "window",
+            "cycle_anchor": None,
             "coverage": None,
         },
         scope,

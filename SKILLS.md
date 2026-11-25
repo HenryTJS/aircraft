@@ -126,20 +126,22 @@ API planner
 | `adapters/raw.py` | 已完成：只读原始目录，不读 results |
 | `skills/check` | 已完成：原始模态覆盖，不报 t85 |
 | `skills/metric` | 完成：L1 C3/C4 `.DTA` + L1 C1/C2/L2 `.pridb`（1 s bin + cache） |
-| `skills/fbg` | 已实现，待验证：raw FBG 应变剖面/载荷窗；窗口轴，不输出 t85 |
-| `skills/dfos` | 已实现，待验证：C1/C2 块级 HI 与预警 cycle；饱和标记；不是空间定位 |
-| `skills/pzt` | 已实现，待验证：raw PZT 导波退相关 t50/t85、TOF 漂移；慢，t85=100 多为删失 |
+| `skills/fbg` | 已验证 L1-30：raw FBG 应变剖面/载荷窗；窗口轴，不输出 t85；C1/C3 加载窗不足会拒答；claim 示例 `L1-30_fbg.json`，`cycle_anchor=null` |
+| `skills/dfos` | 已验证 L1-03/L1-49：C1/C2 块级 HI 与预警 cycle；14 组 HI_end=1.0 是归一化上限，11 组三阈值同 block 不能分级；不是空间定位；claim 示例 `L1-03_dfos.json`，未分块阈值标 insufficient |
+| `skills/pzt` | 已验证 L1-06：raw PZT 导波退相关 t50/t85、TOF 漂移；慢，t85=100 是寿命末端边界/删失；claim 示例 `L1-06_pzt.json`，删失值标 insufficient |
+| `skills/fmoc` | 已验证 spec2：Vallen `.pridb` 的 AE hits 时间轴 t85；DIC 末帧只作 test_end 下界，`test_end_uncertain=true` 时 DIC t85 标 insufficient；claim 示例 `spec2_fmoc.json` |
+| C1 冲突 case | `tools/build_claim_graph.py --tool conflict --gid L1-03`：AE/DFOS/PZT/FBG 五条 claim 同图，结论“不能给四个可比 t85”；示例 `L1-03_conflict.json`，validator 21 checks |
 | `skills/compare` | 暂停：没有 raw campaign metric，返回 unsupported |
 | `skills/audit` | 已完成：claim–evidence 校验 |
-| workflow schema / executor | **未开始** |
+| workflow（最小两步） | 已完成 L1-13：AE t85 + PZT t85 + 派生 `t85_gap_pp`，validator 从两条 evidence 重算差值；不是通用 schema/executor，固定 AE+PZT |
 | verifier | 原型：`validate.py` 重跑工具、时间门、coverage；L1-06 Web 切片已用 |
-| API planner | 受限语义编译器已接 `/api/ask`；只做 t85/t50/unsupported，无多步 workflow |
+| API planner | 受限语义编译器已接 `/api/ask`；metric/fbg/dfos/pzt/fmoc/conflict/workflow/unsupported；conflict 与 workflow 在 LLM 前确定性分流；workflow 只覆盖固定 AE+PZT |
 | 本地 3B QLoRA | **未开始** |
-| case 级评测 | **未开始**；旧 40/11/16 问答评测已删除 |
+| case 级评测 | **v0 已跑**：30 题 5 类 + 11 题 hard set；30 题规则饱和，hard set 补守卫后 fallback 9/10、LLM 10/10，新增 F-MOC 题后 fallback 10/11；不是独立证据 |
 
 当前能诚实的说法：
 
-> **这是一个 raw-only 的 SHM 工具层，加一个 L1-DTA 的 metric 原型；还不是 workflow 合成系统。**
+> **这是一个 raw-only 的 SHM 工具层，加一个多模态 claim/verifier/planner 垂直切片，加一个固定的 AE+PZT 两步 workflow；还不是通用 workflow 合成系统。**
 
 ### 0.7 实施顺序
 
@@ -181,6 +183,7 @@ skill 化的目标是：
 |---|---|---|
 | `check` | `python skills\check\run.py --dataset L1 --gid L1-03` | 原始模态覆盖、缺失；t85 交给 metric |
 | `metric` | `python skills\metric\run.py --dataset L1 --gid L1-06` | 从 raw DTA/pridb 算 t50/t85；C1/C2 用 anchor，L2 用 cycle 表 |
+| `fmoc` | `python skills\fmoc\run.py --gid spec2` | Vallen `.pridb` 的 AE hits 时间轴 t50/t85/t99；DIC 末帧只作下界 |
 | `audit` | `python skills\audit\run.py --graph examples\L1-06_t85.json` | 每个 claim 的出处、无证据/不一致项 |
 | `compare` | 暂停到 raw metric 扩展到 campaign | 当前返回 `unsupported` |
 
@@ -296,7 +299,7 @@ SHM/PHM 最危险的不是“答错”，而是“用未来数据回答早期问
 新的评测分两层：
 
 1. **契约测试**：现在已有 10 条；
-2. **case 级评测**：等 workflow/executor/verifier 建好后，用 L2、MORPHO、PHM 三个 held-out case，不用问答集。
+2. **case 级评测**：等更广的 workflow 层和 held-out 工具建好后，用 L2、MORPHO、PHM 三个 held-out case，不用问答集；当前只有 L1-13 的固定两步 workflow，不能算 held-out。
 
 ---
 

@@ -1,0 +1,152 @@
+{
+  "schema_version": "1.0",
+  "graph_id": "G001",
+  "question": "L1-30 的 FBG 工具输出是什么？边界是什么？",
+  "created_at": "2026-11-24T14:14:46+08:00",
+  "policy": {
+    "require_evidence": true,
+    "allow_unsupported_claims": false,
+    "max_evidence_per_claim": 8,
+    "temporal_leakage_check": true,
+    "temporal_mode": "streaming",
+    "require_numeric_tool_evidence": true
+  },
+  "claims": [
+    {
+      "claim_id": "C001",
+      "text": "L1-30 的 FBG 末窗应变剖面相对首窗中位剖面的 shape_rob25 为 0.015593；轴为加载窗，不是寿命分数。",
+      "claim_type": "numeric",
+      "subject": "L1-30",
+      "predicate": "shape_rob25_last",
+      "value": 0.015593122804356103,
+      "unit": "L1",
+      "comparator": "eq",
+      "tolerance": 1e-06,
+      "status": "supported",
+      "evidence_ids": [
+        "E001"
+      ],
+      "tool_call_ids": [
+        "T001"
+      ],
+      "scope": {
+        "gid": "L1-30",
+        "campaign": "L1",
+        "modality": "FBG",
+        "cycle_min": null,
+        "cycle_max": 10150,
+        "lifetime_min": null,
+        "lifetime_max": null
+      },
+      "boundary": {
+        "cycle_anchor": null
+      },
+      "allowed_lifetime_max": null,
+      "missing_evidence": null,
+      "confidence": 0.99,
+      "created_by": "Analyst"
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "E001",
+      "evidence_type": "tool_result",
+      "source": {
+        "kind": "tool",
+        "title": "L1-30 raw FBG (fbg.profile)",
+        "tool_name": "fbg.profile",
+        "version": "0.1.0",
+        "authors": [],
+        "year": null,
+        "venue": null,
+        "doi": null,
+        "url": null,
+        "clause": null
+      },
+      "content": {
+        "metric": "shape_rob25_last",
+        "value": 0.015593122804356103,
+        "gid": "L1-30",
+        "coverage": null,
+        "coverage_basis": "not_applicable",
+        "boundary": {
+          "cycle_anchor": null
+        },
+        "axis": "window",
+        "cycle_anchor": null,
+        "n_windows": 51
+      },
+      "quote": null,
+      "locator": {
+        "file": "E:\\l1\\L1-30\\FBG",
+        "page": null,
+        "section": null,
+        "table": null,
+        "figure": null,
+        "row": null,
+        "clause": null,
+        "char_start": null,
+        "char_end": null
+      },
+      "scope": {
+        "gid": "L1-30",
+        "campaign": "L1",
+        "modality": "FBG",
+        "cycle_min": null,
+        "cycle_max": 10150,
+        "lifetime_min": null,
+        "lifetime_max": null
+      },
+      "observed_lifetime_fraction": null,
+      "tool_call_id": "T001",
+      "coverage": null,
+      "coverage_basis": "not_applicable",
+      "retrieved_at": "2026-11-24T14:14:46+08:00",
+      "content_hash": null,
+      "reliability": "primary"
+    }
+  ],
+  "edges": [
+    {
+      "claim_id": "C001",
+      "evidence_id": "E001",
+      "relation": "supports"
+    }
+  ],
+  "tool_calls": [
+    {
+      "tool_call_id": "T001",
+      "tool_name": "fbg.profile",
+      "arguments": {
+        "gid": "L1-30"
+      },
+      "result": {
+        "gid": "L1-30",
+        "dataset": "L1",
+        "modality": "FBG",
+        "source_format": "raw-fbg-profile",
+        "axis": "window",
+        "cycle_anchor": null,
+        "n_f": 10150,
+        "n_windows": 51,
+        "n_channels": 10,
+        "p2p_med": 1941.287,
+        "shape_rob25_first": 0.014813145288648723,
+        "shape_rob25_last": 0.015593122804356103,
+        "shape_rob25_median": 0.015568795016649747,
+        "shape_rob25_max": 1.4546944241463025,
+        "centroid_drift": 0.011285635205158684,
+        "argmax_mode": 7,
+        "raw_fbg": "E:\\l1\\L1-30\\FBG",
+        "coverage": null
+      },
+      "created_at": "2026-11-24T14:14:46+08:00",
+      "elapsed_ms": 1279.4
+    }
+  ],
+  "verification": {
+    "status": "needs_review",
+    "summary": "populated by validate.py",
+    "checks": []
+  }
+}

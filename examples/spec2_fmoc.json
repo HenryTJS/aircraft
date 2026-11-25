@@ -1,0 +1,269 @@
+{
+  "schema_version": "1.0",
+  "graph_id": "G001",
+  "question": "F-MOC spec2 的 t85 是多少",
+  "created_at": "2026-11-25T18:27:59+08:00",
+  "policy": {
+    "require_evidence": true,
+    "allow_unsupported_claims": false,
+    "max_evidence_per_claim": 8,
+    "temporal_leakage_check": true,
+    "temporal_mode": "retrospective",
+    "require_numeric_tool_evidence": true
+  },
+  "claims": [
+    {
+      "claim_id": "C001",
+      "text": "spec2 的 F-MOC AE hits 在观测时间窗口内 t85=74.55%；轴是时间，不是 cycle，不能与 L1 的寿命分数直接比较。",
+      "claim_type": "numeric",
+      "subject": "spec2",
+      "predicate": "t85_hit_pct",
+      "value": 74.55,
+      "unit": "%",
+      "comparator": "eq",
+      "tolerance": 1e-06,
+      "status": "supported",
+      "evidence_ids": [
+        "E001"
+      ],
+      "tool_call_ids": [
+        "T001"
+      ],
+      "scope": {
+        "gid": "spec2",
+        "campaign": "F-MOC",
+        "modality": "AE",
+        "cycle_min": null,
+        "cycle_max": null,
+        "lifetime_min": 0,
+        "lifetime_max": 1
+      },
+      "boundary": {
+        "time_axis": true,
+        "test_end_uncertain": true,
+        "dic_last_h": 3.99
+      },
+      "allowed_lifetime_max": 0.95,
+      "missing_evidence": null,
+      "confidence": 0.99,
+      "created_by": "Analyst"
+    },
+    {
+      "claim_id": "C002",
+      "text": "spec2 的 F-MOC AE t85 按 DIC 末帧归一化为 82.23%；DIC 末帧只是 test_end 下界，且 AE 超出 DIC 2% 以上，该值只能当敏感性。",
+      "claim_type": "numeric",
+      "subject": "spec2",
+      "predicate": "t85_dic_pct",
+      "value": 82.23,
+      "unit": "%",
+      "comparator": "eq",
+      "tolerance": 1e-06,
+      "status": "insufficient",
+      "evidence_ids": [
+        "E002"
+      ],
+      "tool_call_ids": [
+        "T001"
+      ],
+      "scope": {
+        "gid": "spec2",
+        "campaign": "F-MOC",
+        "modality": "AE",
+        "cycle_min": null,
+        "cycle_max": null,
+        "lifetime_min": 0,
+        "lifetime_max": 1
+      },
+      "boundary": {
+        "time_axis": true,
+        "test_end_uncertain": true,
+        "dic_last_h": 3.99
+      },
+      "allowed_lifetime_max": null,
+      "missing_evidence": "AE 记录超过 DIC 末帧 2% 以上，test_end 不确定",
+      "confidence": null,
+      "created_by": "Analyst"
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "E001",
+      "evidence_type": "tool_result",
+      "source": {
+        "kind": "tool",
+        "title": "spec2 raw AE (fmoc.profile)",
+        "tool_name": "fmoc.profile",
+        "version": "0.1.0",
+        "authors": [],
+        "year": null,
+        "venue": null,
+        "doi": null,
+        "url": null,
+        "clause": null
+      },
+      "content": {
+        "metric": "t85_hit_pct",
+        "value": 74.55,
+        "gid": "spec2",
+        "coverage": 1.0,
+        "coverage_basis": "lifetime",
+        "boundary": {
+          "time_axis": true,
+          "test_end_uncertain": true,
+          "dic_last_h": 3.99
+        },
+        "axis": "time",
+        "indicator": "hits",
+        "n_hits": 812797,
+        "t85_dic_pct": 82.23,
+        "dic_last_h": 3.99,
+        "test_end_uncertain": true
+      },
+      "quote": null,
+      "locator": {
+        "file": "E:\\fmoc\\ACOUSTIC\\spec2.pridb",
+        "page": null,
+        "section": null,
+        "table": null,
+        "figure": null,
+        "row": null,
+        "clause": null,
+        "char_start": null,
+        "char_end": null
+      },
+      "scope": {
+        "gid": "spec2",
+        "campaign": "F-MOC",
+        "modality": "AE",
+        "cycle_min": null,
+        "cycle_max": null,
+        "lifetime_min": 0,
+        "lifetime_max": 1
+      },
+      "observed_lifetime_fraction": 1.0,
+      "tool_call_id": "T001",
+      "coverage": 1.0,
+      "coverage_basis": "lifetime",
+      "retrieved_at": "2026-11-25T18:27:59+08:00",
+      "content_hash": null,
+      "reliability": "primary"
+    },
+    {
+      "evidence_id": "E002",
+      "evidence_type": "tool_result",
+      "source": {
+        "kind": "tool",
+        "title": "spec2 raw AE (fmoc.profile)",
+        "tool_name": "fmoc.profile",
+        "version": "0.1.0",
+        "authors": [],
+        "year": null,
+        "venue": null,
+        "doi": null,
+        "url": null,
+        "clause": null
+      },
+      "content": {
+        "metric": "t85_dic_pct",
+        "value": 82.23,
+        "gid": "spec2",
+        "coverage": 1.0,
+        "coverage_basis": "lifetime",
+        "boundary": {
+          "time_axis": true,
+          "test_end_uncertain": true,
+          "dic_last_h": 3.99
+        },
+        "axis": "time",
+        "indicator": "hits",
+        "n_hits": 812797,
+        "t85_dic_pct": 82.23,
+        "dic_last_h": 3.99,
+        "test_end_uncertain": true
+      },
+      "quote": null,
+      "locator": {
+        "file": "E:\\fmoc\\ACOUSTIC\\spec2.pridb",
+        "page": null,
+        "section": null,
+        "table": null,
+        "figure": null,
+        "row": null,
+        "clause": null,
+        "char_start": null,
+        "char_end": null
+      },
+      "scope": {
+        "gid": "spec2",
+        "campaign": "F-MOC",
+        "modality": "AE",
+        "cycle_min": null,
+        "cycle_max": null,
+        "lifetime_min": 0,
+        "lifetime_max": 1
+      },
+      "observed_lifetime_fraction": 1.0,
+      "tool_call_id": "T001",
+      "coverage": 1.0,
+      "coverage_basis": "lifetime",
+      "retrieved_at": "2026-11-25T18:27:59+08:00",
+      "content_hash": null,
+      "reliability": "primary"
+    }
+  ],
+  "edges": [
+    {
+      "claim_id": "C001",
+      "evidence_id": "E001",
+      "relation": "supports"
+    },
+    {
+      "claim_id": "C002",
+      "evidence_id": "E002",
+      "relation": "supports"
+    }
+  ],
+  "tool_calls": [
+    {
+      "tool_call_id": "T001",
+      "tool_name": "fmoc.profile",
+      "arguments": {
+        "gid": "spec2"
+      },
+      "result": {
+        "gid": "spec2",
+        "dataset": "F-MOC",
+        "modality": "AE",
+        "source_format": "vallen-pridb",
+        "axis": "time",
+        "indicator": "hits",
+        "n_hits": 812797,
+        "duration_h": 4.4,
+        "t50_hit_pct": 39.03,
+        "t85_hit_pct": 74.55,
+        "t99_hit_pct": 90.14,
+        "t85_active_pct": 82.72,
+        "t85_dic_pct": 82.23,
+        "dic_last_h": 3.99,
+        "ae_over_dic": 1.103,
+        "test_end_uncertain": true,
+        "coverage_ok": false,
+        "t85_energy_pct": 85.95,
+        "t50_s": 6197.42,
+        "t85_s": 11824.81,
+        "t99_s": 14294.21,
+        "raw_fmoc": "E:\\fmoc\\ACOUSTIC\\spec2.pridb",
+        "raw_dic": "E:\\fmoc\\DIC",
+        "coverage": 1.0,
+        "coverage_basis": "lifetime"
+      },
+      "created_at": "2026-11-25T18:27:59+08:00",
+      "elapsed_ms": 0
+    }
+  ],
+  "verification": {
+    "status": "needs_review",
+    "summary": "populated by validate.py",
+    "checks": []
+  }
+}

@@ -1,0 +1,488 @@
+{
+  "model": "deepseek-chat",
+  "rows": [
+    {
+      "id": "H01",
+      "category": "ambiguous",
+      "gid": "L1-06",
+      "t": 0.95,
+      "question": "它为什么到 85% 才报警",
+      "expect": {
+        "intent": "unsupported",
+        "tool": "",
+        "metrics": [],
+        "status": "unsupported"
+      },
+      "why": "没有指代对象，应该追问而不是默认 L1-06",
+      "bare": {
+        "ok": true,
+        "model": "deepseek-chat",
+        "answer": "不能确定。你只说了“它到 85% 才报警”，但没有说明“它”指哪个对象、85% 是什么指标（如损伤概率、载荷、温度、寿命消耗等），也没有报警阈值设定和监测数据。缺少这些信息，无法判断为什么到 85% 才报警。",
+        "has_percent": true,
+        "has_metric_value": false,
+        "refused": true
+      },
+      "system": {
+        "status": "unsupported",
+        "gate": null,
+        "answer": "",
+        "message": "当前 L1-06 只支持 metric、pzt 的白名单查询；预测、RUL、损伤类型与维修建议不在可签发范围内。",
+        "planner": {
+          "source": "llm",
+          "plan": {
+            "intent": "unsupported",
+            "tool": "",
+            "gid": "L1-06",
+            "metrics": [],
+            "base": "post",
+            "stride": 1
+          },
+          "model": "deepseek-chat"
+        },
+        "n_claims": 0,
+        "claim_statuses": [],
+        "claim_values": [],
+        "failed_checks": [],
+        "http_status": 200
+      }
+    },
+    {
+      "id": "H02",
+      "category": "wrong_premise",
+      "gid": "L1-03",
+      "t": 0.95,
+      "question": "L1-03 的 FBG t85 是 94.86，对吗",
+      "expect": {
+        "intent": "unsupported",
+        "tool": "",
+        "metrics": [],
+        "status": "unsupported"
+      },
+      "why": "L1-03 当前没有可签的 FBG t85，不能确认错误前提",
+      "bare": {
+        "ok": true,
+        "model": "deepseek-chat",
+        "answer": "根据你给出的信息，我无法确认“L1-03 的 FBG t85 是 94.86”是否正确：这里没有提供 L1-03 的 FBG t85 的参考值或判定依据，也没有可核对的数据。不能仅凭这句话判断对错，也不能编造数值。",
+        "has_percent": false,
+        "has_metric_value": true,
+        "refused": true
+      },
+      "system": {
+        "status": "unsupported",
+        "gate": null,
+        "answer": "",
+        "message": "当前 L1-03 只支持 metric、dfos、pzt、conflict 的白名单查询；预测、RUL、损伤类型与维修建议不在可签发范围内。",
+        "planner": {
+          "source": "llm",
+          "plan": {
+            "intent": "unsupported",
+            "tool": "",
+            "gid": "L1-03",
+            "metrics": [],
+            "base": "post",
+            "stride": 1
+          },
+          "model": "deepseek-chat"
+        },
+        "n_claims": 0,
+        "claim_statuses": [],
+        "claim_values": [],
+        "failed_checks": [],
+        "http_status": 200
+      }
+    },
+    {
+      "id": "H03",
+      "category": "unknown_data",
+      "gid": "F-MOC",
+      "t": 0.95,
+      "question": "F-MOC spec1 的 t85 是多少",
+      "expect": {
+        "intent": "unsupported",
+        "tool": "",
+        "metrics": [],
+        "status": "http_404"
+      },
+      "why": "F-MOC 尚未接入 API，不能拿 L1 口径冒充",
+      "bare": {
+        "ok": true,
+        "model": "deepseek-chat",
+        "answer": "根据你给出的信息，我无法回答“F-MOC spec1 的 t85 是多少”：这里没有提供 F-MOC spec1 的任何数据或定义，也没有说明 t85 指什么，因此不能给出数值。",
+        "has_percent": false,
+        "has_metric_value": false,
+        "refused": true
+      },
+      "system": {
+        "status": "http_404",
+        "http_status": 404
+      }
+    },
+    {
+      "id": "H04",
+      "category": "cross_case",
+      "gid": "L1-06",
+      "t": 0.95,
+      "question": "把 L1-06 的 t85 和 L1-13 的 PZT 比一下",
+      "expect": {
+        "intent": "unsupported",
+        "tool": "",
+        "metrics": [],
+        "status": "unsupported"
+      },
+      "why": "跨 gid 比较不在当前单 gid 契约内",
+      "bare": {
+        "ok": true,
+        "model": "deepseek-chat",
+        "answer": "不能比较：你只给了“L1-06 的 t85”和“L1-13 的 PZT”这两个指代，但没有给出它们的具体数值或可读取的数据，也没有说明比较的是哪个指标（如幅值、阈值、时间等）。请提供这两项的具体数据或明确比较口径。",
+        "has_percent": false,
+        "has_metric_value": false,
+        "refused": true
+      },
+      "system": {
+        "status": "unsupported",
+        "gate": null,
+        "answer": "",
+        "message": "当前 L1-06 只支持 metric、pzt 的白名单查询；预测、RUL、损伤类型与维修建议不在可签发范围内。",
+        "planner": {
+          "source": "fallback",
+          "plan": {
+            "intent": "unsupported",
+            "tool": "",
+            "gid": "L1-06",
+            "metrics": [],
+            "base": "post",
+            "stride": 1,
+            "reason": "问题涉及多个试件或多个 gid；当前 API 一次只处理一个 gid，跨试件比较多步编排尚未实现"
+          }
+        },
+        "n_claims": 0,
+        "claim_statuses": [],
+        "claim_values": [],
+        "failed_checks": [],
+        "http_status": 200
+      }
+    },
+    {
+      "id": "H05",
+      "category": "invalid_fusion",
+      "gid": "L1-03",
+      "t": 0.95,
+      "question": "L1-03 四个模态 t85 平均是多少",
+      "expect": {
+        "intent": "conflict_case",
+        "tool": "conflict",
+        "metrics": [],
+        "status": "partial"
+      },
+      "why": "四个模态不可比，系统应拒绝求平均",
+      "bare": {
+        "ok": true,
+        "model": "deepseek-chat",
+        "answer": "不能确定。你只给了“L1-03 四个模态 t85”这一条信息，没有给出四个模态各自的 t85 数值，因此无法得出平均值；我不能编造数值。请提供这四个模态的 t85 数据。",
+        "has_percent": false,
+        "has_metric_value": false,
+        "refused": true
+      },
+      "system": {
+        "status": "partial",
+        "gate": "boundary",
+        "answer": "L1-03 不能给出四个可比的 t85。AE t85=85.17%；PZT t85=100.00%[98.39, 100.00]%，删失，不签发点估计；DFOS 块级 HI=1.000；DFOS 50% 预警点未签发；FBG 无法形成剖面，因为原始只有 2 个加载窗。这些值分别是事件累积、块级包络、导波退相关和覆盖不足，不是同一物理量，不能当作四个寿命点排序。",
+        "message": "部分签发：可支持的 claim 已返回，边界不足的 claim 只标原因。",
+        "planner": {
+          "source": "fallback",
+          "plan": {
+            "intent": "conflict_case",
+            "tool": "conflict",
+            "gid": "L1-03",
+            "metrics": [],
+            "base": "post",
+            "stride": 1,
+            "reason": "规则回退：识别到跨模态可比性/可用性查询"
+          }
+        },
+        "n_claims": 5,
+        "claim_statuses": [
+          "supported",
+          "supported",
+          "insufficient",
+          "insufficient",
+          "insufficient"
+        ],
+        "claim_values": [
+          {
+            "id": null,
+            "predicate": "t85_pct",
+            "value": 85.16709804726827,
+            "status": "supported"
+          },
+          {
+            "id": null,
+            "predicate": "hi_end",
+            "value": 1.0,
+            "status": "supported"
+          },
+          {
+            "id": null,
+            "predicate": "warn50_pct",
+            "value": 5.0,
+            "status": "insufficient"
+          },
+          {
+            "id": null,
+            "predicate": "t85_pct",
+            "value": 100.0,
+            "status": "insufficient"
+          },
+          {
+            "id": null,
+            "predicate": "fbg_profile",
+            "value": null,
+            "status": "insufficient"
+          }
+        ],
+        "failed_checks": [],
+        "http_status": 200
+      }
+    },
+    {
+      "id": "H06",
+      "category": "multi_step",
+      "gid": "L1-06",
+      "t": 0.95,
+      "question": "先看 L1-06 的 t85，再看 L1-13 的 PZT，最后说哪个更晚",
+      "expect": {
+        "intent": "unsupported",
+        "tool": "",
+        "metrics": [],
+        "status": "unsupported"
+      },
+      "why": "真正的多步跨 gid 编排尚未实现",
+      "bare": {
+        "ok": true,
+        "model": "deepseek-chat",
+        "answer": "不能回答。你只给了“L1-06 的 t85”和“L1-13 的 PZT”这两个指代，但没有给出它们各自的具体时间/数值，也没有提供可比较的数据，所以我无法判断哪个更晚。",
+        "has_percent": false,
+        "has_metric_value": false,
+        "refused": true
+      },
+      "system": {
+        "status": "unsupported",
+        "gate": null,
+        "answer": "",
+        "message": "当前 L1-06 只支持 metric、pzt 的白名单查询；预测、RUL、损伤类型与维修建议不在可签发范围内。",
+        "planner": {
+          "source": "fallback",
+          "plan": {
+            "intent": "unsupported",
+            "tool": "",
+            "gid": "L1-06",
+            "metrics": [],
+            "base": "post",
+            "stride": 1,
+            "reason": "问题涉及多个试件或多个 gid；当前 API 一次只处理一个 gid，跨试件比较多步编排尚未实现"
+          }
+        },
+        "n_claims": 0,
+        "claim_statuses": [],
+        "claim_values": [],
+        "failed_checks": [],
+        "http_status": 200
+      }
+    },
+    {
+      "id": "H07",
+      "category": "modality_boundary",
+      "gid": "L1-30",
+      "t": 0.95,
+      "question": "L1-30 的 FBG 能不能给 t85",
+      "expect": {
+        "intent": "fbg_profile",
+        "tool": "fbg",
+        "metrics": [],
+        "status": "ok"
+      },
+      "why": "只能给窗口剖面，必须明确回答不能给 t85",
+      "bare": {
+        "ok": true,
+        "model": "deepseek-chat",
+        "answer": "不能。你给出的信息里没有 L1-30 的 FBG 与 t85 之间的对应关系或数据，我无法判断“能不能给 t85”，也不能编造数值。请补充 L1-30 的 FBG 相关参数/定义，以及 t85 的含义或对应表。",
+        "has_percent": false,
+        "has_metric_value": false,
+        "refused": true
+      },
+      "system": {
+        "status": "ok",
+        "gate": "not_applicable",
+        "answer": "L1-30 FBG 末窗应变剖面 shape_rob25=0.015593；轴为加载窗，不映射寿命分数，t 不适用于该 claim。",
+        "message": "",
+        "planner": {
+          "source": "fallback",
+          "plan": {
+            "intent": "fbg_profile",
+            "tool": "fbg",
+            "gid": "L1-30",
+            "metrics": [],
+            "base": "post",
+            "stride": 1,
+            "reason": "规则回退：识别到 fbg 查询"
+          },
+          "error": "LLM returned unsupported; deterministic parser found an explicit whitelisted tool"
+        },
+        "n_claims": 1,
+        "claim_statuses": [
+          "supported"
+        ],
+        "claim_values": [
+          {
+            "id": null,
+            "predicate": "shape_rob25_last",
+            "value": 0.015593122804356103,
+            "status": "supported"
+          }
+        ],
+        "failed_checks": [],
+        "http_status": 200
+      }
+    },
+    {
+      "id": "H08",
+      "category": "temporal",
+      "gid": "L1-06",
+      "t": 0.62,
+      "question": "L1-06 在 62% 时能看到 93.76% 的结论吗",
+      "expect": {
+        "intent": "metric_query",
+        "tool": "metric",
+        "metrics": [
+          "t85"
+        ],
+        "status": "refused"
+      },
+      "why": "时间门必须挡住全寿命结论",
+      "bare": {
+        "ok": true,
+        "model": "deepseek-chat",
+        "answer": "不能确定。你给的信息里没有说明“L1-06”是什么、62% 指什么指标、93.76% 是什么结论，也没有给出两者之间的关系或数据表，因此无法判断在 62% 时能否看到 93.76% 的结论。",
+        "has_percent": true,
+        "has_metric_value": false,
+        "refused": true
+      },
+      "system": {
+        "status": "refused",
+        "gate": "temporal",
+        "answer": "",
+        "message": "时间门未通过：该数值结论超出允许寿命上限，系统不签发 claim。",
+        "planner": {
+          "source": "fallback",
+          "plan": {
+            "intent": "metric_query",
+            "tool": "metric",
+            "gid": "L1-06",
+            "metrics": [
+              "t85"
+            ],
+            "base": "post",
+            "stride": 1,
+            "reason": "规则回退：识别到寿命时点查询，交给时间门判断"
+          }
+        },
+        "n_claims": 0,
+        "claim_statuses": [],
+        "claim_values": [],
+        "failed_checks": [],
+        "http_status": 200
+      }
+    },
+    {
+      "id": "H09",
+      "category": "report_audit",
+      "gid": "L1-03",
+      "t": 0.95,
+      "question": "报告里写 L1-03 AE t85=76.29，这个数能用吗",
+      "expect": {
+        "intent": "unsupported",
+        "tool": "",
+        "metrics": [],
+        "status": "unsupported"
+      },
+      "why": "系统没有报告审计工具，不能替旧表背书",
+      "bare": {
+        "ok": true,
+        "model": "deepseek-chat",
+        "answer": "不能判断这个数能不能用。你只给了“L1-03 AE t85=76.29”这一条，没有说明 t85 的定义、单位、采集条件、判定阈值或报告上下文，我无法核实它是否有效或可用。请补充这些信息。",
+        "has_percent": false,
+        "has_metric_value": true,
+        "refused": true
+      },
+      "system": {
+        "status": "unsupported",
+        "gate": null,
+        "answer": "",
+        "message": "当前 L1-03 只支持 metric、dfos、pzt、conflict 的白名单查询；预测、RUL、损伤类型与维修建议不在可签发范围内。",
+        "planner": {
+          "source": "fallback",
+          "plan": {
+            "intent": "unsupported",
+            "tool": "",
+            "gid": "L1-03",
+            "metrics": [],
+            "base": "post",
+            "stride": 1,
+            "reason": "外部报告中的数值不能直接作为证据；当前系统只重算 raw 数据，没有报告审计工具，不能替报告里的结论背书"
+          }
+        },
+        "n_claims": 0,
+        "claim_statuses": [],
+        "claim_values": [],
+        "failed_checks": [],
+        "http_status": 200
+      }
+    },
+    {
+      "id": "H10",
+      "category": "wrong_tool",
+      "gid": "L1-06",
+      "t": 0.95,
+      "question": "L1-06 的 DFOS 预警点是多少",
+      "expect": {
+        "intent": "unsupported",
+        "tool": "",
+        "metrics": [],
+        "status": "unsupported"
+      },
+      "why": "L1-06 没有 DFOS 工具，不能跨工具借用",
+      "bare": {
+        "ok": true,
+        "model": "deepseek-chat",
+        "answer": "无法确定。你只给出了“L1-06”，没有提供该对象的 DFOS 预警点数据或相关监测信息，我不能编造数值。请补充 L1-06 的 DFOS 监测数据或预警阈值来源。",
+        "has_percent": false,
+        "has_metric_value": false,
+        "refused": true
+      },
+      "system": {
+        "status": "unsupported",
+        "gate": null,
+        "answer": "",
+        "message": "当前 L1-06 只支持 metric、pzt 的白名单查询；预测、RUL、损伤类型与维修建议不在可签发范围内。",
+        "planner": {
+          "source": "fallback",
+          "plan": {
+            "intent": "unsupported",
+            "tool": "",
+            "gid": "L1-06",
+            "metrics": [],
+            "base": "post",
+            "stride": 1,
+            "reason": "问题指向 dfos，但 L1-06 的白名单是 metric, pzt"
+          },
+          "error": "ValueError: tool 'dfos' not allowed for L1-06"
+        },
+        "n_claims": 0,
+        "claim_statuses": [],
+        "claim_values": [],
+        "failed_checks": [],
+        "http_status": 200
+      }
+    }
+  ]
+}

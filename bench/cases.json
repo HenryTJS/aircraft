@@ -1,0 +1,36 @@
+[
+  {"id":"S01","category":"single_hop","gid":"L1-06","t":0.95,"question":"L1-06 的 t85 是多少","expect":{"intent":"metric_query","tool":"metric","metrics":["t85"],"status":"ok"}},
+  {"id":"S02","category":"single_hop","gid":"L1-06","t":0.95,"question":"t50 和 t85 分别多少","expect":{"intent":"metric_query","tool":"metric","metrics":["t85","t50"],"status":"ok"}},
+  {"id":"S03","category":"single_hop","gid":"L1-06","t":0.95,"question":"PZT 导波的 t85 是多少","expect":{"intent":"pzt_index","tool":"pzt","metrics":[],"status":"insufficient"}},
+  {"id":"S04","category":"single_hop","gid":"L1-13","t":0.95,"question":"PZT 的 t85 是多少","expect":{"intent":"pzt_index","tool":"pzt","metrics":[],"status":"ok"}},
+  {"id":"S05","category":"single_hop","gid":"L1-30","t":0.95,"question":"FBG 末窗应变剖面","expect":{"intent":"fbg_profile","tool":"fbg","metrics":[],"status":"ok"}},
+  {"id":"S06","category":"single_hop","gid":"L1-03","t":0.95,"question":"DFOS 的块级 HI 是多少","expect":{"intent":"dfos_block","tool":"dfos","metrics":[],"status":"partial"}},
+
+  {"id":"P01","category":"paraphrase","gid":"L1-06","t":0.95,"question":"AE 累积到百分之八十五时对应哪个寿命分数","expect":{"intent":"metric_query","tool":"metric","metrics":["t85"],"status":"ok"}},
+  {"id":"P02","category":"paraphrase","gid":"L1-06","t":0.95,"question":"帮我算一下 AE 的半寿命点","expect":{"intent":"metric_query","tool":"metric","metrics":["t50"],"status":"ok"}},
+  {"id":"P03","category":"paraphrase","gid":"L1-30","t":0.95,"question":"光纤光栅最后一个加载窗的应变剖面偏离","expect":{"intent":"fbg_profile","tool":"fbg","metrics":[],"status":"ok"}},
+  {"id":"P04","category":"paraphrase","gid":"L1-03","t":0.95,"question":"分布式应变的块级包络终值","expect":{"intent":"dfos_block","tool":"dfos","metrics":[],"status":"partial"}},
+  {"id":"P05","category":"paraphrase","gid":"L1-13","t":0.95,"question":"超声导波从什么时候开始退化","expect":{"intent":"pzt_index","tool":"pzt","metrics":[],"status":"ok"}},
+  {"id":"P06","category":"paraphrase","gid":"L1-06","t":0.95,"question":"AE 的 t50 和 t85 分别到多少","expect":{"intent":"metric_query","tool":"metric","metrics":["t85","t50"],"status":"ok"}},
+
+  {"id":"M01","category":"multi_tool","gid":"L1-03","t":0.95,"question":"L1-03 四个模态的 t85 能不能直接比较","expect":{"intent":"conflict_case","tool":"conflict","metrics":[],"status":"partial"}},
+  {"id":"M02","category":"multi_tool","gid":"L1-03","t":0.95,"question":"AE、FBG、DFOS、PZT 为什么对不上","expect":{"intent":"conflict_case","tool":"conflict","metrics":[],"status":"partial"}},
+  {"id":"M03","category":"multi_tool","gid":"L1-03","t":0.95,"question":"四个模态的数据齐全吗","expect":{"intent":"conflict_case","tool":"conflict","metrics":[],"status":"partial"}},
+  {"id":"M04","category":"multi_tool","gid":"L1-06","t":0.95,"question":"AE 和 PZT 的 t85 分别是多少","expect":{"intent":"unsupported","tool":"","metrics":[],"status":"unsupported"}},
+  {"id":"M05","category":"multi_tool","gid":"L1-03","t":0.95,"question":"AE t85 和 DFOS 的 HI 是否一致","expect":{"intent":"conflict_case","tool":"conflict","metrics":[],"status":"partial"}},
+  {"id":"M06","category":"multi_tool","gid":"L1-03","t":0.95,"question":"AE 和 DFOS 的差异在哪里","expect":{"intent":"conflict_case","tool":"conflict","metrics":[],"status":"partial"}},
+
+  {"id":"U01","category":"unknown","gid":"L1-99","t":0.95,"question":"L1-99 的 t85 是多少","expect":{"intent":"unsupported","tool":"","metrics":[],"status":"http_404"}},
+  {"id":"U02","category":"unknown","gid":"L1-06","t":0.95,"question":"预测一下剩余寿命","expect":{"intent":"unsupported","tool":"","metrics":[],"status":"unsupported"}},
+  {"id":"U03","category":"unknown","gid":"L1-06","t":0.95,"question":"这条裂纹有多长","expect":{"intent":"unsupported","tool":"","metrics":[],"status":"unsupported"}},
+  {"id":"U04","category":"unknown","gid":"L1-30","t":0.95,"question":"DFOS 的预警点是多少","expect":{"intent":"unsupported","tool":"","metrics":[],"status":"unsupported"}},
+  {"id":"U05","category":"unknown","gid":"L1-03","t":0.95,"question":"帮我看看这个试件","expect":{"intent":"unsupported","tool":"","metrics":[],"status":"unsupported"}},
+  {"id":"U06","category":"unknown","gid":"L1-13","t":0.95,"question":"FBG 的应变剖面","expect":{"intent":"unsupported","tool":"","metrics":[],"status":"unsupported"}},
+
+  {"id":"T01","category":"temporal","gid":"L1-06","t":0.62,"question":"L1-06 的 t85 是多少","expect":{"intent":"metric_query","tool":"metric","metrics":["t85"],"status":"refused"}},
+  {"id":"T02","category":"temporal","gid":"L1-06","t":0.95,"question":"L1-06 的 t85 是多少","expect":{"intent":"metric_query","tool":"metric","metrics":["t85"],"status":"ok"}},
+  {"id":"T03","category":"temporal","gid":"L1-13","t":0.80,"question":"PZT 的 t85 是多少","expect":{"intent":"pzt_index","tool":"pzt","metrics":[],"status":"refused"}},
+  {"id":"T04","category":"temporal","gid":"L1-13","t":0.95,"question":"PZT 的 t85 是多少","expect":{"intent":"pzt_index","tool":"pzt","metrics":[],"status":"ok"}},
+  {"id":"T05","category":"temporal","gid":"L1-03","t":0.80,"question":"四个模态的 t85 能不能直接比较","expect":{"intent":"conflict_case","tool":"conflict","metrics":[],"status":"refused"}},
+  {"id":"T06","category":"temporal","gid":"L1-03","t":0.95,"question":"四个模态的 t85 能不能直接比较","expect":{"intent":"conflict_case","tool":"conflict","metrics":[],"status":"partial"}}
+]

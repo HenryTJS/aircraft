@@ -70,6 +70,14 @@ python tools\profile_fmoc.py --config cases\fmoc.json --out docs\fmoc_initial.cs
 - 因此 **F-MOC 无法从论文重建 cycle 轴**；`axis=time` 仍是当前唯一诚实口径，`t85_dic` 仍只是 test_end 下界下的敏感性值。
 - 用户给的 DOI `10.4233/uuid:538558fb-...` 是 Eleftheroglou 2020 博士论文（TU Delft，28.9 MB，直链 `https://research.tudelft.nl/files/83535609/Thesis_1.pdf`）；当前环境被 Cloudflare 403 / 仓库超时，**未下载**。
 
+## 5.2 接入状态（2026-11-25）
+
+- 已新增 `skills/fmoc/run.py`、`schema.json`、`SKILL.md`，并在 `skills/registry.json` 注册。
+- `tools/build_claim_graph.py --tool fmoc --gid spec2` 生成 `examples/spec2_fmoc.json`；validator 13 checks 通过。
+- `t85_hit_pct` 为 supported，`allowed_lifetime_max=t`；这里的 `t` 是允许观测时间分数，不是 RUL。`t85_dic_pct` 在 `test_end_uncertain=true` 时为 insufficient，不能签点估计。
+- `/api/ask` 对 `spec2` 返回 `partial`；`t=0.70` 时 AE t85 超过 allowed，返回 `refused`。
+- `spec1–spec7` 已进 `SUPPORTED`，但仍只走单工具 `fmoc`，没有多步编排。
+
 ## 6. 下一步
 
 1. **cycle 轴**：从论文/试验记录找加载频率；没有就仍保持 `axis=time`，不要伪造 cycle。

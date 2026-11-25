@@ -6,28 +6,30 @@
 - 定位：LLM 只做“语义编译 + 叙述”，数值由确定性工具算，`validator` 决定能不能交。
 - 不是“一个模型吃所有数据”，而是“有限原语 + LLM 组合 + 确定性执行 + 验证器”。
 
-## 0. 当前状态（2026-11-23）
+## 0. 当前状态（2026-11-25）
 
 | 模块 | 状态 |
 |---|---|
 | `skills/check` | 可用：raw 模态覆盖，不报 t85 |
 | `skills/metric` | 可用：L1 C3/C4 `.DTA` + L1 C1/C2/L2 `.pridb`；L1-06 = **93.76%**；`.pridb` 1s bin 缓存后 <1s |
-| `skills/fbg` | **已实现，待验证**：raw FBG 应变剖面/载荷窗，输出形状指标，不输出 t85 |
-| `skills/dfos` | **已实现，待验证**：C1/C2 块级 HI 与预警 cycle；饱和标记；不是空间定位 |
-| `skills/pzt` | **已实现，待验证**：raw PZT 导波退相关 t50/t85、TOF 漂移；慢，且 t85=100 多为删失 |
+| `skills/fbg` | **已验证**：L1-30 与 `_l1fbgprof_L1-30.npz` 一致；C1/C3 加载窗不足会 `unsupported`；不输出 t85 |
+| `skills/dfos` | **已验证**：L1-03/L1-49 与 `l1_dfos_metrics.csv` 一致；14 组 `HI_end=1.0` 是归一化上限，11 组三阈值同 block 不能分级；不是空间定位 |
+| `skills/pzt` | **已验证**：L1-06 与 `pzt_crosslab_summary.csv` 一致；慢，`t85=100` 是寿命末端边界/删失 |
+| `skills/fmoc` | **已接入**：`spec1–spec7` 的 Vallen `.pridb` → AE hits 时间轴 t85；DIC 末帧作 test_end 下界，`test_end_uncertain=true` 时 DIC t85 只标边界；claim 示例 `spec2_fmoc.json` |
 | `skills/audit` | 可用：绑定 `tool_call`、重跑工具、时间门/coverage；`L1-06` 示例已从 raw 生成 |
 | `skills/compare` | 暂停：返回 unsupported |
-| workflow / executor | **未开始** |
+| workflow / executor | **最小多步已通**：L1-13 AE t85 → PZT t85 → 派生 `t85_gap_pp`；validator 20 checks；不做任意 workflow DSL |
+
 | verifier | 原型：`validate.py` 已重跑工具；L1-06 Web 切片已用 |
 | planner | **受限语义编译器**：DeepSeek 实调已通过（`source=llm`，热请求约 1.5 s）；无 endpoint 时规则回退；模型不产出数字 |
 | 3B QLoRA | **未开始** |
-| case 级评测 | **未开始** |
+| case 级评测 | **v0 已跑**：30 题 5 类 + 11 题 hard set；30 题规则饱和，hard set 首轮 fallback 5/10、LLM 6/10，补跨 gid / 报告审计 / 时间门守卫后 fallback 9/10、LLM 10/10；新增 F-MOC 题后 fallback 10/11（H01 仍失败）；仍不是独立证据 |
 | dashboard | **已迁入** `aircraft/dashboard`；`data/` 不入库，生成器通过 `AIRCRAFT_ROOT` 写回 |
-| `web/app.py` | **L1-06 垂直切片 + 受限 planner**：FastAPI 壳 + `/api/ask` + 时间门 + 问题输入 + 证据抽屉；只支持 L1-06 |
+| `web/app.py` | **四个 L1 gid + F-MOC spec1–7 + 受限 planner**：FastAPI 壳 + `/api/ask` + 时间门 + 问题输入 + 证据抽屉；L1-06 AE/PZT/workflow、L1-13 AE/PZT/workflow、L1-30 FBG、L1-03 DFOS/冲突、F-MOC AE；支持 `ok/partial/insufficient/refused/unsupported` |
 | 调研语料 | 已并入 `survey/`：54 篇、1,154 页 |
-| F-MOC 接入 | 7 个 `.pridb`；`t85_full` 58.8–84.4%，`t85_dic` 81.4–86.2%（DIC 末帧为 test_end 下界）；非 L1 口径，见 `docs/fmoc_initial.md` |
+| F-MOC 接入 | 7 个 `.pridb`；`t85_full` 58.8–84.4%，`t85_dic` 81.4–86.2%（DIC 末帧为 test_end 下界）；已接 claim/API，`spec2` 返回 `partial`；非 L1 口径，见 `docs/fmoc_initial.md` |
 
-诚实的说法：**这是一个 raw-only 的 SHM 工具层 + claim–evidence 校验器 + 受限 planner 的单 case 垂直切片；还不是多 case 的 workflow 合成系统。**
+诚实的说法：**这是一个 raw-only 的 SHM 工具层 + claim–evidence 校验器 + 受限 planner 的垂直切片（四个 L1 gid + F-MOC spec1–7）；已有一个 AE+PZT 的两步 workflow，但还不是多 case 的 workflow 合成系统。**
 
 ## 1. 目录
 
@@ -37,7 +39,7 @@ aircraft/
 ├─ .env.example          ← LLM endpoint/model/key 模板；.env 不入库
 ├─ SKILLS.md             ← skill 层、证据契约、边界（原 llm/README.md）
 ├─ adapters/             ← 只读 raw 的 L1/L2/PHM2019 adapter
-├─ skills/               ← check / metric / fbg / dfos / pzt / compare / audit
+├─ skills/               ← check / metric / fbg / dfos / pzt / fmoc / compare / audit
 ├─ schema/               ← claim–evidence schema
 ├─ examples/
 ├─ tests/
@@ -49,13 +51,15 @@ aircraft/
 ├─ survey/               ← 54 篇 LLM/SHM 语料 + 综述 + 提案
 ├─ docs/
 │  ├─ metric_standard.md ← t_x 读数标准
-│  └─ fmoc_initial.md    ← F-MOC 初析
+│  ├─ fmoc_initial.md    ← F-MOC 初析
+│  └─ integration_review.md ← 三模态 claim 接入三级审查
 ├─ validate.py
 ├─ rag.py
 ├─ rag_index.pkl
 ├─ dashboard/            ← 回放看板（已迁入；data/ 不入库）
+├─ bench/                ← P3 30 题、5 类 planner 评测；run_bench.py
 └─ web/
-   ├─ app.py             ← FastAPI 壳 + /api/ask（当前只开 L1-06）
+   ├─ app.py             ← FastAPI 壳 + /api/ask（L1-06 / L1-13 / L1-30 / L1-03 / F-MOC spec1–7）
    ├─ planner.py         ← 问题 → 白名单计划；LLM 可选，规则回退
    ├─ tests/             ← test_api.py / test_planner.py
    └─ static/            ← assistant.js / assistant.css（注入看板，不新做页面）
@@ -90,9 +94,14 @@ aircraft/
 ### P2 Dashboard 合并（第 4–8 周，可与 P1 并行）
 
 - [x] `dashboard/`（`index.html` / `alignment.html` / `assets/` / `data/`）迁入 `aircraft`；生成器留在 `shm`，通过 `AIRCRAFT_ROOT` 写回，不 fork。
-- [x] 最小垂直切片：`web/app.py` 只开 L1-06，FastAPI 壳 + `/api/ask` + URL 深链 + 回顾性时间门 + 证据抽屉；不新做页面。
-- [x] 受限语义编译器：问题 → 白名单计划（t85/t50/unsupported）；LLM 只编译计划，不产出数字；无 endpoint 或越界时规则回退；前端有问题输入与 planner 来源。
+- [x] 最小垂直切片：`web/app.py` 开 L1-06，FastAPI 壳 + `/api/ask` + URL 深链 + 回顾性时间门 + 证据抽屉；不新做页面。
+- [x] 四个 L1 gid 扩展：L1-30 FBG、L1-03 DFOS/冲突、L1-13 PZT、L1-06 AE/PZT；`/api/ask` 返回 `ok/partial/insufficient/refused/unsupported`，前端按 claim 状态渲染。
+- [x] F-MOC 扩展：`spec1–spec7` 走 `skills/fmoc`，AE hits 时间轴 t85 可签；DIC 末帧不确定时 `t85_dic_pct` 只标 insufficient；`spec2` 返回 `partial`。
+- [x] 受限语义编译器：问题 → 白名单计划（metric / fbg / dfos / pzt / fmoc / conflict / workflow / unsupported）；LLM 只编译计划，不产出数字；无 endpoint 或越界时规则回退；前端有问题输入与 planner 来源。
+- [x] C1 冲突 case：`build_conflict_graph()` 把 L1-03 的 AE、DFOS、PZT、FBG 覆盖/删失/窗口限制放在同一张图里，返回 `partial`；结论是“不能给出四个可比的 t85”，不是四个寿命点排序。示例 `examples/L1-03_conflict.json`，validator 21 checks。
+- [x] 最小两步 workflow：`build_workflow_graph()` 先跑 AE `t85` 再跑 PZT `t85`，生成派生 `t85_gap_pp`；validator 从 E001/E002 重算差值。L1-13 t=.95 返回 `ok`，t=.80 被 temporal gate 拒；示例 `examples/L1-13_workflow.json`，validator 20 checks。不是任意 workflow DSL。
 - [x] `/api/ask` 内 verifier 独立重跑 metric，不复用 API 的 raw metric 缓存；首次冷启动约 30 s，之后同进程毫秒级。
+- [x] FBG/DFOS/PZT 独立 claim：boundary 字段（`cycle_anchor` / `threshold_resolved` / `hi_ceiling` / `threshold_reached` / `crossing_interval_pct` / `censored`）+ `coverage_basis`；validator 重跑对应 skill，并拒绝把窗口、同 block 阈值、删失值签成 supported 点。示例与 `tests/test_skill_claims.py` 已过。
 - [ ] 补 `data/index.js` + 24 组主样本包；确认顶栏出现 5 个数据集（主样本 + C1–C4）。
 - [ ] 加公开 API + `postMessage` + URL 深链（`?ds=&gid=&t=`）；切片只做了 API 与 URL，`postMessage` 未做。
 - [ ] 数据 manifest：`schema_version / generated_at / source / raw_hash / evidence_grade`。
@@ -105,11 +114,19 @@ aircraft/
 
 ### P3 证明“不是 wrapper”（第 6–12 周）
 
-- [ ] 30 题、5 类：单跳 / 同义改写 / 多跳 / 未知数据接入 / 证据冲突。
-- [ ] 对照：LLM 裸 / LLM + 工具 / LLM + 工具 + verifier；另加人（子集）。
-- [ ] 指标：意图准确率、workflow 合法率、数值正确率、引用支持率、拒答正确率、延迟。
-- [ ] 10 题“API vs 系统”对照表：同一问题，裸 API 编数/答不出，系统给出可复算答案。
+- [x] 30 题 v0：单跳 / 同义改写 / 多工具冲突 / 未知能力 / 时间门；`bench/cases.json`。
+- [x] 11 题 hard set：模糊指代 / 错误前提 / 未知数据集 / 跨 gid / 非法平均 / 多步 / 模态边界 / 时间门 / 报告审计 / 错工具 / F-MOC 未知数据；`bench/hard_cases.json`。
+- [x] 对照脚本：`bench/run_bench.py` 支持 `fallback` / `llm` / `both`，`--cases` 可切 hard set；`bench/compare_api.py` 做裸 API vs 系统。
+- [x] 最小多步编排：L1-13 的 AE t85 → PZT t85 → `t85_gap_pp`，planner 的 `Plan.steps`、builder 的双 tool_call 图、API 组合状态和 UI 的逐 claim 链已通。仍只覆盖 AE+PZT 两工具，不是任意 workflow DSL。
+- [ ] 多步扩展：DFOS/F-MOC 入 workflow、冲突与 workflow 的组合、错误恢复；当前 `multi_tool` 仍只覆盖冲突/多工具限制。
+- [ ] 对照：LLM 裸 / LLM + 工具 / LLM + 工具 + verifier；另加人（子集）。当前只有 fallback 与 LLM planner 的对照。
+- [ ] 指标：意图准确率、workflow 合法率、数值正确率、引用支持率、拒答正确率、延迟。当前只自动评了意图/工具/metrics/status。
+- [x] 10 题“API vs 系统”对照表：裸 API 未编数、10/10 拒答；系统仅 H05/H07 给出可复算 claim，H08 走时间门拒答，其余边界拒答。原假设“裸 API 会编数”未被这组数据支持，报告不能那样写。
 - [ ] 若 LLM 只在措辞上赢：诚实降级为“带 NL 接口的 SHM 证据系统”，报告如实写。
+
+**首轮结果（2026-11-25，见 `bench/README.md`）**：初版 fallback 25/30，补半寿命、冲突同义词、AE 显式识别、裂纹拦截和模糊问题不该默认 metric 五个规则缺口后 30/30；LLM 直接给出计划只有 15/30，其余由 conflict 确定性分流、过度拒答恢复、白名单回退接住，混合系统仍 30/30；时间门 6 个端到端 case 的状态 6/6。题目和规则同源，30/30 只是回归结果，不能证明 LLM 有增益，也不能证明 LLM 无用。
+
+11 题 hard set 首轮 fallback 5/10、LLM 6/10；补跨 gid、报告审计和“在 62% 时”时间门守卫后，fallback 9/10、LLM 10/10。H01 是唯一由 LLM 改变计划的 case；其余九个已被规则覆盖，因此这组 hard set 也不能再当 LLM 独立证据。新增 F-MOC `spec2` 题后 fallback 10/11，H01 仍失败。裸 API vs 系统首轮：裸模型 10/10 拒答，没有编数；系统 H05 partial、H07 ok、H08 refused，其余边界拒答。原假设“裸 API 会编数”不成立，报告要按实际结果写。
 
 ### P4 Demo 与结题（第 10–16 周）
 
@@ -168,9 +185,15 @@ python validate.py examples\L1-06_t85.json
 
 # 单元测试
 python -m unittest tests.test_validate -v
+python -m unittest tests.test_skill_claims -v
 python -m unittest web.tests.test_planner -v
 python -m unittest web.tests.test_api -v
 python -m unittest discover -s skills\tests -v
+
+# P3 planner 评测
+python -m bench.run_bench
+python -m bench.run_bench --mode both
+python -m bench.run_bench --mode fallback --api --api-ids T01,T02
 
 # skill
 python skills\check\run.py --dataset L1 --gid L1-03
@@ -185,14 +208,32 @@ python tools\build_claim_graph.py --gid L1-06 --out examples\L1-06_t85.json
 python validate.py examples\L1-06_t85.json
 python validate.py examples\L1-06_t85_at062.json   rem 应 fail：时间门
 
+# 模态 claim（boundary 字段防止把窗口/块/删失值当寿命点）
+python tools\build_claim_graph.py --tool fbg --gid L1-30 --out examples\L1-30_fbg.json
+python validate.py examples\L1-30_fbg.json
+python tools\build_claim_graph.py --tool dfos --gid L1-03 --out examples\L1-03_dfos.json
+python validate.py examples\L1-03_dfos.json
+python tools\build_claim_graph.py --tool pzt --gid L1-06 --out examples\L1-06_pzt.json
+python validate.py examples\L1-06_pzt.json
+python tools\build_claim_graph.py --tool pzt --gid L1-13 --out examples\L1-13_pzt.json
+python validate.py examples\L1-13_pzt.json
+python tools\build_claim_graph.py --tool conflict --gid L1-03 --out examples\L1-03_conflict.json
+python validate.py examples\L1-03_conflict.json
+python tools\build_claim_graph.py --tool fmoc --gid spec2 --out examples\spec2_fmoc.json
+python validate.py examples\spec2_fmoc.json
+python tools\build_claim_graph.py --tool workflow --gid L1-13 --t-max 0.95 --mode retrospective --out examples\L1-13_workflow.json
+python validate.py examples\L1-13_workflow.json
+
 # 调研语料
 python rag.py query "t85 definition" -k 5
 
-# Web 切片（当前只开 L1-06；回顾性时间门）
+# Web 切片（L1-06 AE/PZT/workflow、L1-13 AE/PZT/workflow、L1-30 FBG、L1-03 DFOS/冲突；回顾性时间门）
 # 首次冷启动要解析 raw DTA 两次：API 算一次 + verifier 独立重跑一次，约 30 s；之后同一进程内为毫秒级
 python -m uvicorn web.app:app --host 127.0.0.1 --port 8000
 # 浏览器打开：
-# http://127.0.0.1:8000/?ds=c3&gid=L1-06&t=0.95&assistant=1
+# http://127.0.0.1:8000/?ds=c3&gid=L1-06&t=0.95&assistant=1&q=t85
+# http://127.0.0.1:8000/?ds=c4&gid=L1-30&t=0.95&assistant=1&q=FBG%20profile
+# http://127.0.0.1:8000/?ds=c1&gid=L1-03&t=0.95&assistant=1&q=%E5%9B%9B%E6%A8%A1%E6%80%81
 # t=0.62 应被拒，t=0.95 应通过；t=0.93 仍会被拒（t85=93.76）
 
 # 可选 LLM 语义编译器（OpenAI-compatible；不配置则规则回退）

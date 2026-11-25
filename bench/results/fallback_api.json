@@ -1,0 +1,1013 @@
+{
+  "fallback": {
+    "rows": [
+      {
+        "id": "S01",
+        "category": "single_hop",
+        "gid": "L1-06",
+        "question": "L1-06 的 t85 是多少",
+        "source": "fallback",
+        "intent": "metric_query",
+        "tool": "metric",
+        "metrics": [
+          "t85"
+        ],
+        "expected_intent": "metric_query",
+        "expected_tool": "metric",
+        "expected_metrics": [
+          "t85"
+        ],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": null
+      },
+      {
+        "id": "S02",
+        "category": "single_hop",
+        "gid": "L1-06",
+        "question": "t50 和 t85 分别多少",
+        "source": "fallback",
+        "intent": "metric_query",
+        "tool": "metric",
+        "metrics": [
+          "t85",
+          "t50"
+        ],
+        "expected_intent": "metric_query",
+        "expected_tool": "metric",
+        "expected_metrics": [
+          "t85",
+          "t50"
+        ],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": null
+      },
+      {
+        "id": "S03",
+        "category": "single_hop",
+        "gid": "L1-06",
+        "question": "PZT 导波的 t85 是多少",
+        "source": "fallback",
+        "intent": "pzt_index",
+        "tool": "pzt",
+        "metrics": [],
+        "expected_intent": "pzt_index",
+        "expected_tool": "pzt",
+        "expected_metrics": [],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": null
+      },
+      {
+        "id": "S04",
+        "category": "single_hop",
+        "gid": "L1-13",
+        "question": "PZT 的 t85 是多少",
+        "source": "fallback",
+        "intent": "pzt_index",
+        "tool": "pzt",
+        "metrics": [],
+        "expected_intent": "pzt_index",
+        "expected_tool": "pzt",
+        "expected_metrics": [],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": null
+      },
+      {
+        "id": "S05",
+        "category": "single_hop",
+        "gid": "L1-30",
+        "question": "FBG 末窗应变剖面",
+        "source": "fallback",
+        "intent": "fbg_profile",
+        "tool": "fbg",
+        "metrics": [],
+        "expected_intent": "fbg_profile",
+        "expected_tool": "fbg",
+        "expected_metrics": [],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": null
+      },
+      {
+        "id": "S06",
+        "category": "single_hop",
+        "gid": "L1-03",
+        "question": "DFOS 的块级 HI 是多少",
+        "source": "fallback",
+        "intent": "dfos_block",
+        "tool": "dfos",
+        "metrics": [],
+        "expected_intent": "dfos_block",
+        "expected_tool": "dfos",
+        "expected_metrics": [],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": null
+      },
+      {
+        "id": "P01",
+        "category": "paraphrase",
+        "gid": "L1-06",
+        "question": "AE 累积到百分之八十五时对应哪个寿命分数",
+        "source": "fallback",
+        "intent": "metric_query",
+        "tool": "metric",
+        "metrics": [
+          "t85"
+        ],
+        "expected_intent": "metric_query",
+        "expected_tool": "metric",
+        "expected_metrics": [
+          "t85"
+        ],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": null
+      },
+      {
+        "id": "P02",
+        "category": "paraphrase",
+        "gid": "L1-06",
+        "question": "帮我算一下 AE 的半寿命点",
+        "source": "fallback",
+        "intent": "metric_query",
+        "tool": "metric",
+        "metrics": [
+          "t50"
+        ],
+        "expected_intent": "metric_query",
+        "expected_tool": "metric",
+        "expected_metrics": [
+          "t50"
+        ],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": null
+      },
+      {
+        "id": "P03",
+        "category": "paraphrase",
+        "gid": "L1-30",
+        "question": "光纤光栅最后一个加载窗的应变剖面偏离",
+        "source": "fallback",
+        "intent": "fbg_profile",
+        "tool": "fbg",
+        "metrics": [],
+        "expected_intent": "fbg_profile",
+        "expected_tool": "fbg",
+        "expected_metrics": [],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": null
+      },
+      {
+        "id": "P04",
+        "category": "paraphrase",
+        "gid": "L1-03",
+        "question": "分布式应变的块级包络终值",
+        "source": "fallback",
+        "intent": "dfos_block",
+        "tool": "dfos",
+        "metrics": [],
+        "expected_intent": "dfos_block",
+        "expected_tool": "dfos",
+        "expected_metrics": [],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": null
+      },
+      {
+        "id": "P05",
+        "category": "paraphrase",
+        "gid": "L1-13",
+        "question": "超声导波从什么时候开始退化",
+        "source": "fallback",
+        "intent": "pzt_index",
+        "tool": "pzt",
+        "metrics": [],
+        "expected_intent": "pzt_index",
+        "expected_tool": "pzt",
+        "expected_metrics": [],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": null
+      },
+      {
+        "id": "P06",
+        "category": "paraphrase",
+        "gid": "L1-06",
+        "question": "AE 的 t50 和 t85 分别到多少",
+        "source": "fallback",
+        "intent": "metric_query",
+        "tool": "metric",
+        "metrics": [
+          "t85",
+          "t50"
+        ],
+        "expected_intent": "metric_query",
+        "expected_tool": "metric",
+        "expected_metrics": [
+          "t85",
+          "t50"
+        ],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": null
+      },
+      {
+        "id": "M01",
+        "category": "multi_tool",
+        "gid": "L1-03",
+        "question": "L1-03 四个模态的 t85 能不能直接比较",
+        "source": "fallback",
+        "intent": "conflict_case",
+        "tool": "conflict",
+        "metrics": [],
+        "expected_intent": "conflict_case",
+        "expected_tool": "conflict",
+        "expected_metrics": [],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": null
+      },
+      {
+        "id": "M02",
+        "category": "multi_tool",
+        "gid": "L1-03",
+        "question": "AE、FBG、DFOS、PZT 为什么对不上",
+        "source": "fallback",
+        "intent": "conflict_case",
+        "tool": "conflict",
+        "metrics": [],
+        "expected_intent": "conflict_case",
+        "expected_tool": "conflict",
+        "expected_metrics": [],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": null
+      },
+      {
+        "id": "M03",
+        "category": "multi_tool",
+        "gid": "L1-03",
+        "question": "四个模态的数据齐全吗",
+        "source": "fallback",
+        "intent": "conflict_case",
+        "tool": "conflict",
+        "metrics": [],
+        "expected_intent": "conflict_case",
+        "expected_tool": "conflict",
+        "expected_metrics": [],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": null
+      },
+      {
+        "id": "M04",
+        "category": "multi_tool",
+        "gid": "L1-06",
+        "question": "AE 和 PZT 的 t85 分别是多少",
+        "source": "fallback",
+        "intent": "unsupported",
+        "tool": "",
+        "metrics": [],
+        "expected_intent": "unsupported",
+        "expected_tool": "",
+        "expected_metrics": [],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": null
+      },
+      {
+        "id": "M05",
+        "category": "multi_tool",
+        "gid": "L1-03",
+        "question": "AE t85 和 DFOS 的 HI 是否一致",
+        "source": "fallback",
+        "intent": "conflict_case",
+        "tool": "conflict",
+        "metrics": [],
+        "expected_intent": "conflict_case",
+        "expected_tool": "conflict",
+        "expected_metrics": [],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": null
+      },
+      {
+        "id": "M06",
+        "category": "multi_tool",
+        "gid": "L1-03",
+        "question": "AE 和 DFOS 的差异在哪里",
+        "source": "fallback",
+        "intent": "conflict_case",
+        "tool": "conflict",
+        "metrics": [],
+        "expected_intent": "conflict_case",
+        "expected_tool": "conflict",
+        "expected_metrics": [],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": null
+      },
+      {
+        "id": "U01",
+        "category": "unknown",
+        "gid": "L1-99",
+        "question": "L1-99 的 t85 是多少",
+        "source": "fallback",
+        "intent": "unsupported",
+        "tool": "",
+        "metrics": [],
+        "expected_intent": "unsupported",
+        "expected_tool": "",
+        "expected_metrics": [],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": "unsupported gid",
+        "status_ok": null
+      },
+      {
+        "id": "U02",
+        "category": "unknown",
+        "gid": "L1-06",
+        "question": "预测一下剩余寿命",
+        "source": "fallback",
+        "intent": "unsupported",
+        "tool": "",
+        "metrics": [],
+        "expected_intent": "unsupported",
+        "expected_tool": "",
+        "expected_metrics": [],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": null
+      },
+      {
+        "id": "U03",
+        "category": "unknown",
+        "gid": "L1-06",
+        "question": "这条裂纹有多长",
+        "source": "fallback",
+        "intent": "unsupported",
+        "tool": "",
+        "metrics": [],
+        "expected_intent": "unsupported",
+        "expected_tool": "",
+        "expected_metrics": [],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": null
+      },
+      {
+        "id": "U04",
+        "category": "unknown",
+        "gid": "L1-30",
+        "question": "DFOS 的预警点是多少",
+        "source": "fallback",
+        "intent": "unsupported",
+        "tool": "",
+        "metrics": [],
+        "expected_intent": "unsupported",
+        "expected_tool": "",
+        "expected_metrics": [],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": null
+      },
+      {
+        "id": "U05",
+        "category": "unknown",
+        "gid": "L1-03",
+        "question": "帮我看看这个试件",
+        "source": "fallback",
+        "intent": "unsupported",
+        "tool": "",
+        "metrics": [],
+        "expected_intent": "unsupported",
+        "expected_tool": "",
+        "expected_metrics": [],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": null
+      },
+      {
+        "id": "U06",
+        "category": "unknown",
+        "gid": "L1-13",
+        "question": "FBG 的应变剖面",
+        "source": "fallback",
+        "intent": "unsupported",
+        "tool": "",
+        "metrics": [],
+        "expected_intent": "unsupported",
+        "expected_tool": "",
+        "expected_metrics": [],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": null
+      },
+      {
+        "id": "T01",
+        "category": "temporal",
+        "gid": "L1-06",
+        "question": "L1-06 的 t85 是多少",
+        "source": "fallback",
+        "intent": "metric_query",
+        "tool": "metric",
+        "metrics": [
+          "t85"
+        ],
+        "expected_intent": "metric_query",
+        "expected_tool": "metric",
+        "expected_metrics": [
+          "t85"
+        ],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": true,
+        "actual_status": "refused",
+        "expected_status": "refused",
+        "api": {
+          "status": "refused",
+          "gate": "temporal",
+          "planner": {
+            "source": "llm",
+            "plan": {
+              "intent": "metric_query",
+              "tool": "metric",
+              "gid": "L1-06",
+              "metrics": [
+                "t85"
+              ],
+              "base": "post",
+              "stride": 1
+            },
+            "model": "deepseek-chat"
+          },
+          "http_status": 200,
+          "checks": null,
+          "failed_checks": null
+        }
+      },
+      {
+        "id": "T02",
+        "category": "temporal",
+        "gid": "L1-06",
+        "question": "L1-06 的 t85 是多少",
+        "source": "fallback",
+        "intent": "metric_query",
+        "tool": "metric",
+        "metrics": [
+          "t85"
+        ],
+        "expected_intent": "metric_query",
+        "expected_tool": "metric",
+        "expected_metrics": [
+          "t85"
+        ],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": true,
+        "actual_status": "ok",
+        "expected_status": "ok",
+        "api": {
+          "status": "ok",
+          "gate": "pass",
+          "planner": {
+            "source": "llm",
+            "plan": {
+              "intent": "metric_query",
+              "tool": "metric",
+              "gid": "L1-06",
+              "metrics": [
+                "t85"
+              ],
+              "base": "post",
+              "stride": 1
+            },
+            "model": "deepseek-chat"
+          },
+          "http_status": 200,
+          "checks": [
+            {
+              "name": "schema",
+              "status": "pass",
+              "detail": "JSON Schema valid"
+            },
+            {
+              "name": "unique_claim_id",
+              "status": "pass",
+              "detail": "unique"
+            },
+            {
+              "name": "unique_evidence_id",
+              "status": "pass",
+              "detail": "unique"
+            },
+            {
+              "name": "unique_tool_call_id",
+              "status": "pass",
+              "detail": "unique"
+            },
+            {
+              "name": "edge_references",
+              "status": "pass",
+              "detail": "all edges resolve"
+            },
+            {
+              "name": "claim_evidence",
+              "status": "pass",
+              "detail": "1 evidence item(s)",
+              "claim_id": "C001"
+            },
+            {
+              "name": "tool_reexecution",
+              "status": "pass",
+              "detail": "recomputed t85_pct=93.75795455603424",
+              "claim_id": "C001",
+              "evidence_id": "E001"
+            },
+            {
+              "name": "coverage",
+              "status": "pass",
+              "detail": "coverage 1.0",
+              "claim_id": "C001",
+              "evidence_id": "E001"
+            },
+            {
+              "name": "numeric_value",
+              "status": "pass",
+              "detail": "t85_pct=93.75795455603424 (tolerance 0.01)",
+              "claim_id": "C001",
+              "evidence_id": "E001"
+            },
+            {
+              "name": "verification_status",
+              "status": "pass",
+              "detail": "0 failed check(s)"
+            }
+          ],
+          "failed_checks": null
+        }
+      },
+      {
+        "id": "T03",
+        "category": "temporal",
+        "gid": "L1-13",
+        "question": "PZT 的 t85 是多少",
+        "source": "fallback",
+        "intent": "pzt_index",
+        "tool": "pzt",
+        "metrics": [],
+        "expected_intent": "pzt_index",
+        "expected_tool": "pzt",
+        "expected_metrics": [],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": true,
+        "actual_status": "refused",
+        "expected_status": "refused",
+        "api": {
+          "status": "refused",
+          "gate": "temporal",
+          "planner": {
+            "source": "fallback",
+            "plan": {
+              "intent": "pzt_index",
+              "tool": "pzt",
+              "gid": "L1-13",
+              "metrics": [],
+              "base": "post",
+              "stride": 1,
+              "reason": "规则回退：识别到 pzt 查询"
+            },
+            "error": "LLM returned unsupported; deterministic parser found an explicit whitelisted tool"
+          },
+          "http_status": 200,
+          "checks": null,
+          "failed_checks": null
+        }
+      },
+      {
+        "id": "T04",
+        "category": "temporal",
+        "gid": "L1-13",
+        "question": "PZT 的 t85 是多少",
+        "source": "fallback",
+        "intent": "pzt_index",
+        "tool": "pzt",
+        "metrics": [],
+        "expected_intent": "pzt_index",
+        "expected_tool": "pzt",
+        "expected_metrics": [],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": true,
+        "actual_status": "ok",
+        "expected_status": "ok",
+        "api": {
+          "status": "ok",
+          "gate": "pass",
+          "planner": {
+            "source": "fallback",
+            "plan": {
+              "intent": "pzt_index",
+              "tool": "pzt",
+              "gid": "L1-13",
+              "metrics": [],
+              "base": "post",
+              "stride": 1,
+              "reason": "规则回退：识别到 pzt 查询"
+            },
+            "error": "LLM returned unsupported; deterministic parser found an explicit whitelisted tool"
+          },
+          "http_status": 200,
+          "checks": [
+            {
+              "name": "schema",
+              "status": "pass",
+              "detail": "JSON Schema valid"
+            },
+            {
+              "name": "unique_claim_id",
+              "status": "pass",
+              "detail": "unique"
+            },
+            {
+              "name": "unique_evidence_id",
+              "status": "pass",
+              "detail": "unique"
+            },
+            {
+              "name": "unique_tool_call_id",
+              "status": "pass",
+              "detail": "unique"
+            },
+            {
+              "name": "edge_references",
+              "status": "pass",
+              "detail": "all edges resolve"
+            },
+            {
+              "name": "claim_evidence",
+              "status": "pass",
+              "detail": "1 evidence item(s)",
+              "claim_id": "C001"
+            },
+            {
+              "name": "tool_reexecution",
+              "status": "pass",
+              "detail": "recomputed t85_pct=87.73662551440329",
+              "claim_id": "C001",
+              "evidence_id": "E001"
+            },
+            {
+              "name": "coverage",
+              "status": "pass",
+              "detail": "partial coverage 0.9572; claim is limited to observed interval",
+              "claim_id": "C001",
+              "evidence_id": "E001"
+            },
+            {
+              "name": "numeric_value",
+              "status": "pass",
+              "detail": "t85_pct=87.73662551440329 (tolerance 1e-06)",
+              "claim_id": "C001",
+              "evidence_id": "E001"
+            },
+            {
+              "name": "verification_status",
+              "status": "pass",
+              "detail": "0 failed check(s)"
+            }
+          ],
+          "failed_checks": null
+        }
+      },
+      {
+        "id": "T05",
+        "category": "temporal",
+        "gid": "L1-03",
+        "question": "四个模态的 t85 能不能直接比较",
+        "source": "fallback",
+        "intent": "conflict_case",
+        "tool": "conflict",
+        "metrics": [],
+        "expected_intent": "conflict_case",
+        "expected_tool": "conflict",
+        "expected_metrics": [],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": true,
+        "actual_status": "refused",
+        "expected_status": "refused",
+        "api": {
+          "status": "refused",
+          "gate": "temporal",
+          "planner": {
+            "source": "fallback",
+            "plan": {
+              "intent": "conflict_case",
+              "tool": "conflict",
+              "gid": "L1-03",
+              "metrics": [],
+              "base": "post",
+              "stride": 1,
+              "reason": "规则回退：识别到跨模态可比性/可用性查询"
+            }
+          },
+          "http_status": 200,
+          "checks": null,
+          "failed_checks": null
+        }
+      },
+      {
+        "id": "T06",
+        "category": "temporal",
+        "gid": "L1-03",
+        "question": "四个模态的 t85 能不能直接比较",
+        "source": "fallback",
+        "intent": "conflict_case",
+        "tool": "conflict",
+        "metrics": [],
+        "expected_intent": "conflict_case",
+        "expected_tool": "conflict",
+        "expected_metrics": [],
+        "intent_ok": true,
+        "tool_ok": true,
+        "metrics_ok": true,
+        "planner_error": null,
+        "status_ok": true,
+        "actual_status": "partial",
+        "expected_status": "partial",
+        "api": {
+          "status": "partial",
+          "gate": "boundary",
+          "planner": {
+            "source": "fallback",
+            "plan": {
+              "intent": "conflict_case",
+              "tool": "conflict",
+              "gid": "L1-03",
+              "metrics": [],
+              "base": "post",
+              "stride": 1,
+              "reason": "规则回退：识别到跨模态可比性/可用性查询"
+            }
+          },
+          "http_status": 200,
+          "checks": [
+            {
+              "name": "schema",
+              "status": "pass",
+              "detail": "JSON Schema valid"
+            },
+            {
+              "name": "unique_claim_id",
+              "status": "pass",
+              "detail": "unique"
+            },
+            {
+              "name": "unique_evidence_id",
+              "status": "pass",
+              "detail": "unique"
+            },
+            {
+              "name": "unique_tool_call_id",
+              "status": "pass",
+              "detail": "unique"
+            },
+            {
+              "name": "edge_references",
+              "status": "pass",
+              "detail": "all edges resolve"
+            },
+            {
+              "name": "claim_evidence",
+              "status": "pass",
+              "detail": "1 evidence item(s)",
+              "claim_id": "C001"
+            },
+            {
+              "name": "tool_reexecution",
+              "status": "pass",
+              "detail": "recomputed t85_pct=85.16709804726827",
+              "claim_id": "C001",
+              "evidence_id": "E001"
+            },
+            {
+              "name": "coverage",
+              "status": "pass",
+              "detail": "coverage 0.9905299518398273",
+              "claim_id": "C001",
+              "evidence_id": "E001"
+            },
+            {
+              "name": "numeric_value",
+              "status": "pass",
+              "detail": "t85_pct=85.16709804726827 (tolerance 1e-06)",
+              "claim_id": "C001",
+              "evidence_id": "E001"
+            },
+            {
+              "name": "claim_evidence",
+              "status": "pass",
+              "detail": "1 evidence item(s)",
+              "claim_id": "C002"
+            },
+            {
+              "name": "tool_reexecution",
+              "status": "pass",
+              "detail": "recomputed hi_end=1.0",
+              "claim_id": "C002",
+              "evidence_id": "E002"
+            },
+            {
+              "name": "coverage",
+              "status": "pass",
+              "detail": "coverage 1.0",
+              "claim_id": "C002",
+              "evidence_id": "E002"
+            },
+            {
+              "name": "numeric_value",
+              "status": "pass",
+              "detail": "hi_end=1.0 (tolerance 1e-06)",
+              "claim_id": "C002",
+              "evidence_id": "E002"
+            },
+            {
+              "name": "insufficient_reason",
+              "status": "pass",
+              "detail": "DFOS 块级分辨率不足，25/50/70 阈值落在同一 block",
+              "claim_id": "C003"
+            },
+            {
+              "name": "tool_reexecution",
+              "status": "pass",
+              "detail": "recomputed warn50_pct=5.0",
+              "claim_id": "C003",
+              "evidence_id": "E003"
+            },
+            {
+              "name": "coverage",
+              "status": "pass",
+              "detail": "coverage 1.0",
+              "claim_id": "C003",
+              "evidence_id": "E003"
+            },
+            {
+              "name": "insufficient_reason",
+              "status": "pass",
+              "detail": "PZT t85 在寿命末端删失，不能作为精确失效点",
+              "claim_id": "C004"
+            },
+            {
+              "name": "tool_reexecution",
+              "status": "pass",
+              "detail": "recomputed t85_pct=100.0",
+              "claim_id": "C004",
+              "evidence_id": "E004"
+            },
+            {
+              "name": "coverage",
+              "status": "pass",
+              "detail": "partial coverage 0.9344; claim is limited to observed interval",
+              "claim_id": "C004",
+              "evidence_id": "E004"
+            },
+            {
+              "name": "insufficient_reason",
+              "status": "pass",
+              "detail": "raw FBG has only 2 loading windows; at least 5 required",
+              "claim_id": "C005"
+            },
+            {
+              "name": "verification_status",
+              "status": "pass",
+              "detail": "0 failed check(s)"
+            }
+          ],
+          "failed_checks": null
+        }
+      }
+    ],
+    "summary": [
+      {
+        "category": "single_hop",
+        "n": 6,
+        "intent_ok": 6,
+        "tool_ok": 6,
+        "metrics_ok": 6,
+        "status_n": 0,
+        "status_ok": 0
+      },
+      {
+        "category": "paraphrase",
+        "n": 6,
+        "intent_ok": 6,
+        "tool_ok": 6,
+        "metrics_ok": 6,
+        "status_n": 0,
+        "status_ok": 0
+      },
+      {
+        "category": "multi_tool",
+        "n": 6,
+        "intent_ok": 6,
+        "tool_ok": 6,
+        "metrics_ok": 6,
+        "status_n": 0,
+        "status_ok": 0
+      },
+      {
+        "category": "unknown",
+        "n": 6,
+        "intent_ok": 6,
+        "tool_ok": 6,
+        "metrics_ok": 6,
+        "status_n": 0,
+        "status_ok": 0
+      },
+      {
+        "category": "temporal",
+        "n": 6,
+        "intent_ok": 6,
+        "tool_ok": 6,
+        "metrics_ok": 6,
+        "status_n": 6,
+        "status_ok": 6
+      },
+      {
+        "category": "ALL",
+        "n": 30,
+        "intent_ok": 30,
+        "tool_ok": 30,
+        "metrics_ok": 30,
+        "status_n": 6,
+        "status_ok": 6
+      }
+    ]
+  }
+}

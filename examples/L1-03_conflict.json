@@ -1,0 +1,671 @@
+{
+  "schema_version": "1.0",
+  "graph_id": "G001",
+  "question": "L1-03 的 AE、DFOS、PZT、FBG 能不能给出四个可比的 t85？",
+  "created_at": "2026-11-25T16:57:30+08:00",
+  "policy": {
+    "require_evidence": true,
+    "allow_unsupported_claims": false,
+    "max_evidence_per_claim": 8,
+    "temporal_leakage_check": true,
+    "temporal_mode": "retrospective",
+    "require_numeric_tool_evidence": true
+  },
+  "claims": [
+    {
+      "claim_id": "C001",
+      "text": "L1-03 的 AE 全寿命 t85 为 85.17%；这是 AE 事件累积口径，不是其他模态的 t85。",
+      "claim_type": "numeric",
+      "subject": "L1-03",
+      "predicate": "t85_pct",
+      "value": 85.16709804726827,
+      "unit": "%",
+      "comparator": "eq",
+      "tolerance": 1e-06,
+      "status": "supported",
+      "evidence_ids": [
+        "E001"
+      ],
+      "tool_call_ids": [
+        "T001"
+      ],
+      "scope": {
+        "gid": "L1-03",
+        "campaign": "L1",
+        "modality": "AE",
+        "cycle_min": 0,
+        "cycle_max": 152458,
+        "lifetime_min": 0,
+        "lifetime_max": 1
+      },
+      "allowed_lifetime_max": 1.0,
+      "missing_evidence": null,
+      "confidence": 0.99,
+      "created_by": "Analyst"
+    },
+    {
+      "claim_id": "C002",
+      "text": "L1-03 的 DFOS 块级 HI 末端为 1.000；这是归一化块级包络，不是 t85，也不是空间损伤图。",
+      "claim_type": "numeric",
+      "subject": "L1-03",
+      "predicate": "hi_end",
+      "value": 1.0,
+      "unit": "normalized",
+      "comparator": "eq",
+      "tolerance": 1e-06,
+      "status": "supported",
+      "evidence_ids": [
+        "E002"
+      ],
+      "tool_call_ids": [
+        "T002"
+      ],
+      "scope": {
+        "gid": "L1-03",
+        "campaign": "L1",
+        "modality": "DFOS",
+        "cycle_min": 0,
+        "cycle_max": 152458,
+        "lifetime_min": 0,
+        "lifetime_max": 1
+      },
+      "boundary": {
+        "threshold_resolved": false,
+        "hi_ceiling": 1.0
+      },
+      "allowed_lifetime_max": null,
+      "missing_evidence": null,
+      "confidence": 0.99,
+      "created_by": "Analyst"
+    },
+    {
+      "claim_id": "C003",
+      "text": "L1-03 的 DFOS 块级 50% 预警点为 5.00%；25/50/70 落在同一 block，不能当三个独立预警点。",
+      "claim_type": "numeric",
+      "subject": "L1-03",
+      "predicate": "warn50_pct",
+      "value": 5.0,
+      "unit": "%",
+      "comparator": "eq",
+      "tolerance": 1e-06,
+      "status": "insufficient",
+      "evidence_ids": [
+        "E003"
+      ],
+      "tool_call_ids": [
+        "T002"
+      ],
+      "scope": {
+        "gid": "L1-03",
+        "campaign": "L1",
+        "modality": "DFOS",
+        "cycle_min": 0,
+        "cycle_max": 152458,
+        "lifetime_min": 0,
+        "lifetime_max": 1
+      },
+      "boundary": {
+        "threshold_resolved": false,
+        "hi_ceiling": 1.0
+      },
+      "allowed_lifetime_max": null,
+      "missing_evidence": "DFOS 块级分辨率不足，25/50/70 阈值落在同一 block",
+      "confidence": null,
+      "created_by": "Analyst"
+    },
+    {
+      "claim_id": "C004",
+      "text": "L1-03 的 PZT t85 为 100.00%；该值在寿命末端删失，只能给出交叉区间。",
+      "claim_type": "numeric",
+      "subject": "L1-03",
+      "predicate": "t85_pct",
+      "value": 100.0,
+      "unit": "%",
+      "comparator": "eq",
+      "tolerance": 1e-06,
+      "status": "insufficient",
+      "evidence_ids": [
+        "E004"
+      ],
+      "tool_call_ids": [
+        "T003"
+      ],
+      "scope": {
+        "gid": "L1-03",
+        "campaign": "L1",
+        "modality": "PZT",
+        "cycle_min": 0,
+        "cycle_max": 152458,
+        "lifetime_min": 0,
+        "lifetime_max": 1
+      },
+      "boundary": {
+        "threshold_reached": true,
+        "crossing_interval_pct": [
+          98.388,
+          100.0
+        ],
+        "censored": true
+      },
+      "allowed_lifetime_max": null,
+      "missing_evidence": "PZT t85 在寿命末端删失，不能作为精确失效点",
+      "confidence": null,
+      "created_by": "Analyst"
+    },
+    {
+      "claim_id": "C005",
+      "text": "L1-03 的 FBG 原始目录只有 2 个加载窗，fbg.profile 要求至少 5 个，无法形成可比剖面。",
+      "claim_type": "limitation",
+      "subject": "L1-03",
+      "predicate": "fbg_profile",
+      "value": null,
+      "unit": null,
+      "comparator": null,
+      "tolerance": null,
+      "status": "insufficient",
+      "evidence_ids": [],
+      "tool_call_ids": [],
+      "scope": {
+        "gid": "L1-03",
+        "campaign": "L1",
+        "modality": "FBG",
+        "cycle_min": 0,
+        "cycle_max": 152458,
+        "lifetime_min": null,
+        "lifetime_max": null
+      },
+      "boundary": {
+        "cycle_anchor": null
+      },
+      "allowed_lifetime_max": null,
+      "missing_evidence": "raw FBG has only 2 loading windows; at least 5 required",
+      "confidence": null,
+      "created_by": "Analyst"
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "E001",
+      "evidence_type": "tool_result",
+      "source": {
+        "kind": "tool",
+        "title": "L1-03 raw AE (metric.l1_t85)",
+        "tool_name": "metric.l1_t85",
+        "version": "0.1.0",
+        "authors": [],
+        "year": null,
+        "venue": null,
+        "doi": null,
+        "url": null,
+        "clause": null
+      },
+      "content": {
+        "metric": "t85_pct",
+        "value": 85.16709804726827,
+        "gid": "L1-03",
+        "coverage": 0.9905299518398273,
+        "coverage_basis": "lifetime",
+        "boundary": {}
+      },
+      "quote": null,
+      "locator": {
+        "file": "E:\\l1\\L1-03\\AE",
+        "page": null,
+        "section": null,
+        "table": null,
+        "figure": null,
+        "row": null,
+        "clause": null,
+        "char_start": null,
+        "char_end": null
+      },
+      "scope": {
+        "gid": "L1-03",
+        "campaign": "L1",
+        "modality": "AE",
+        "cycle_min": 0,
+        "cycle_max": 152458,
+        "lifetime_min": 0,
+        "lifetime_max": 1
+      },
+      "observed_lifetime_fraction": 0.9905299518398273,
+      "tool_call_id": "T001",
+      "coverage": 0.9905299518398273,
+      "coverage_basis": "lifetime",
+      "retrieved_at": "2026-11-25T16:57:30+08:00",
+      "content_hash": null,
+      "reliability": "primary"
+    },
+    {
+      "evidence_id": "E002",
+      "evidence_type": "tool_result",
+      "source": {
+        "kind": "tool",
+        "title": "L1-03 raw DFOS (dfos.block)",
+        "tool_name": "dfos.block",
+        "version": "0.1.0",
+        "authors": [],
+        "year": null,
+        "venue": null,
+        "doi": null,
+        "url": null,
+        "clause": null
+      },
+      "content": {
+        "metric": "hi_end",
+        "value": 1.0,
+        "gid": "L1-03",
+        "coverage": 1.0,
+        "coverage_basis": "block",
+        "boundary": {
+          "threshold_resolved": false,
+          "hi_ceiling": 1.0
+        }
+      },
+      "quote": null,
+      "locator": {
+        "file": "E:\\l1\\L1-03\\L1-03分布式应变.csv",
+        "page": null,
+        "section": null,
+        "table": null,
+        "figure": null,
+        "row": null,
+        "clause": null,
+        "char_start": null,
+        "char_end": null
+      },
+      "scope": {
+        "gid": "L1-03",
+        "campaign": "L1",
+        "modality": "DFOS",
+        "cycle_min": 0,
+        "cycle_max": 152458,
+        "lifetime_min": 0,
+        "lifetime_max": 1
+      },
+      "observed_lifetime_fraction": 1.0,
+      "tool_call_id": "T002",
+      "coverage": 1.0,
+      "coverage_basis": "block",
+      "retrieved_at": "2026-11-25T16:57:30+08:00",
+      "content_hash": null,
+      "reliability": "primary"
+    },
+    {
+      "evidence_id": "E003",
+      "evidence_type": "tool_result",
+      "source": {
+        "kind": "tool",
+        "title": "L1-03 raw DFOS (dfos.block)",
+        "tool_name": "dfos.block",
+        "version": "0.1.0",
+        "authors": [],
+        "year": null,
+        "venue": null,
+        "doi": null,
+        "url": null,
+        "clause": null
+      },
+      "content": {
+        "metric": "warn50_pct",
+        "value": 5.0,
+        "gid": "L1-03",
+        "coverage": 1.0,
+        "coverage_basis": "block",
+        "boundary": {
+          "threshold_resolved": false,
+          "hi_ceiling": 1.0
+        }
+      },
+      "quote": null,
+      "locator": {
+        "file": "E:\\l1\\L1-03\\L1-03分布式应变.csv",
+        "page": null,
+        "section": null,
+        "table": null,
+        "figure": null,
+        "row": null,
+        "clause": null,
+        "char_start": null,
+        "char_end": null
+      },
+      "scope": {
+        "gid": "L1-03",
+        "campaign": "L1",
+        "modality": "DFOS",
+        "cycle_min": 0,
+        "cycle_max": 152458,
+        "lifetime_min": 0,
+        "lifetime_max": 1
+      },
+      "observed_lifetime_fraction": 1.0,
+      "tool_call_id": "T002",
+      "coverage": 1.0,
+      "coverage_basis": "block",
+      "retrieved_at": "2026-11-25T16:57:30+08:00",
+      "content_hash": null,
+      "reliability": "primary"
+    },
+    {
+      "evidence_id": "E004",
+      "evidence_type": "tool_result",
+      "source": {
+        "kind": "tool",
+        "title": "L1-03 raw PZT (pzt.index)",
+        "tool_name": "pzt.index",
+        "version": "0.1.0",
+        "authors": [],
+        "year": null,
+        "venue": null,
+        "doi": null,
+        "url": null,
+        "clause": null
+      },
+      "content": {
+        "metric": "t85_pct",
+        "value": 100.0,
+        "gid": "L1-03",
+        "coverage": 0.9344,
+        "coverage_basis": "partial",
+        "boundary": {
+          "threshold_reached": true,
+          "crossing_interval_pct": [
+            98.388,
+            100.0
+          ],
+          "censored": true
+        }
+      },
+      "quote": null,
+      "locator": {
+        "file": "E:\\l1\\L1-03",
+        "page": null,
+        "section": null,
+        "table": null,
+        "figure": null,
+        "row": null,
+        "clause": null,
+        "char_start": null,
+        "char_end": null
+      },
+      "scope": {
+        "gid": "L1-03",
+        "campaign": "L1",
+        "modality": "PZT",
+        "cycle_min": 0,
+        "cycle_max": 152458,
+        "lifetime_min": 0,
+        "lifetime_max": 1
+      },
+      "observed_lifetime_fraction": 0.9344,
+      "tool_call_id": "T003",
+      "coverage": 0.9344,
+      "coverage_basis": "partial",
+      "retrieved_at": "2026-11-25T16:57:30+08:00",
+      "content_hash": null,
+      "reliability": "primary"
+    }
+  ],
+  "edges": [
+    {
+      "claim_id": "C001",
+      "evidence_id": "E001",
+      "relation": "supports"
+    },
+    {
+      "claim_id": "C002",
+      "evidence_id": "E002",
+      "relation": "supports"
+    },
+    {
+      "claim_id": "C003",
+      "evidence_id": "E003",
+      "relation": "supports"
+    },
+    {
+      "claim_id": "C004",
+      "evidence_id": "E004",
+      "relation": "supports"
+    }
+  ],
+  "tool_calls": [
+    {
+      "tool_call_id": "T001",
+      "tool_name": "metric.l1_t85",
+      "arguments": {
+        "dataset": "L1",
+        "gid": "L1-03"
+      },
+      "result": {
+        "gid": "L1-03",
+        "dataset": "L1",
+        "source_format": "pridb-anchor",
+        "n_f": 152458,
+        "n_frames": 302,
+        "hits": 5783634,
+        "n_files": 1,
+        "f_hz": null,
+        "t50_pct": 48.49273820629608,
+        "t85_pct": 85.16709804726827,
+        "frame_s": null,
+        "axis": "cycle",
+        "load_mask": "dfos/fbg anchor (500cyc)",
+        "coverage": 0.9905299518398273,
+        "bin_s": 500.0,
+        "raw_ae": "E:\\l1\\L1-03\\AE"
+      },
+      "created_at": "2026-11-25T16:57:30+08:00",
+      "elapsed_ms": 11963.2
+    },
+    {
+      "tool_call_id": "T002",
+      "tool_name": "dfos.block",
+      "arguments": {
+        "gid": "L1-03",
+        "base": "post"
+      },
+      "result": {
+        "gid": "L1-03",
+        "dataset": "L1",
+        "modality": "DFOS",
+        "source_format": "raw-dfos-block",
+        "axis": "cycle",
+        "n_f": 152458,
+        "n_blocks": 30,
+        "base_mode": "post",
+        "hi_end": 1.0,
+        "warn25_cycle": 7622.9,
+        "warn25_pct": 5.0,
+        "warn50_cycle": 7622.9,
+        "warn50_pct": 5.0,
+        "warn70_cycle": 7622.9,
+        "warn70_pct": 5.0,
+        "tail_mono_pct": 100.0,
+        "rmse_end": 344.7,
+        "spike_fix": 0.0,
+        "saturation": true,
+        "threshold_resolved": false,
+        "hi_ceiling": 1.0,
+        "raw_dfos": "E:\\l1\\L1-03\\L1-03分布式应变.csv",
+        "coverage": null
+      },
+      "created_at": "2026-11-25T16:57:30+08:00",
+      "elapsed_ms": 11132.9
+    },
+    {
+      "tool_call_id": "T003",
+      "tool_name": "pzt.index",
+      "arguments": {
+        "gid": "L1-03",
+        "stride": 1
+      },
+      "result": {
+        "gid": "L1-03",
+        "dataset": "L1",
+        "modality": "PZT",
+        "source_format": "raw-pzt-mat",
+        "axis": "cycle",
+        "n_f": 152458,
+        "n_states": 30,
+        "life_min_pct": 6.559183512836323,
+        "life_max_pct": 100.0,
+        "D_sum": 5.001819417050385,
+        "t50_pct": 62.312243371945065,
+        "t85_pct": 100.0,
+        "tof_drift_us": 0.8506367325806592,
+        "tof_slope_ts": 0.015931310756143464,
+        "tof_slope_ts_lo": 0.007274854669307427,
+        "tof_slope_ts_hi": 0.02935972766183587,
+        "kendall_tau": 0.46206896551724136,
+        "kendall_p": 0.0002263276900966417,
+        "coverage": 0.9344,
+        "stride": 1,
+        "threshold_reached": true,
+        "crossing_interval_pct": [
+          98.388,
+          100.0
+        ],
+        "censored": true,
+        "raw_pzt": "E:\\l1\\L1-03"
+      },
+      "created_at": "2026-11-25T16:57:30+08:00",
+      "elapsed_ms": 4494.4
+    }
+  ],
+  "verification": {
+    "status": "pass",
+    "summary": "0 failed / 21 checks",
+    "checks": [
+      {
+        "name": "schema",
+        "status": "pass",
+        "detail": "JSON Schema valid"
+      },
+      {
+        "name": "unique_claim_id",
+        "status": "pass",
+        "detail": "unique"
+      },
+      {
+        "name": "unique_evidence_id",
+        "status": "pass",
+        "detail": "unique"
+      },
+      {
+        "name": "unique_tool_call_id",
+        "status": "pass",
+        "detail": "unique"
+      },
+      {
+        "name": "edge_references",
+        "status": "pass",
+        "detail": "all edges resolve"
+      },
+      {
+        "name": "claim_evidence",
+        "status": "pass",
+        "detail": "1 evidence item(s)",
+        "claim_id": "C001"
+      },
+      {
+        "name": "tool_reexecution",
+        "status": "pass",
+        "detail": "recomputed t85_pct=85.16709804726827",
+        "claim_id": "C001",
+        "evidence_id": "E001"
+      },
+      {
+        "name": "coverage",
+        "status": "pass",
+        "detail": "coverage 0.9905299518398273",
+        "claim_id": "C001",
+        "evidence_id": "E001"
+      },
+      {
+        "name": "numeric_value",
+        "status": "pass",
+        "detail": "t85_pct=85.16709804726827 (tolerance 1e-06)",
+        "claim_id": "C001",
+        "evidence_id": "E001"
+      },
+      {
+        "name": "claim_evidence",
+        "status": "pass",
+        "detail": "1 evidence item(s)",
+        "claim_id": "C002"
+      },
+      {
+        "name": "tool_reexecution",
+        "status": "pass",
+        "detail": "recomputed hi_end=1.0",
+        "claim_id": "C002",
+        "evidence_id": "E002"
+      },
+      {
+        "name": "coverage",
+        "status": "pass",
+        "detail": "coverage 1.0",
+        "claim_id": "C002",
+        "evidence_id": "E002"
+      },
+      {
+        "name": "numeric_value",
+        "status": "pass",
+        "detail": "hi_end=1.0 (tolerance 1e-06)",
+        "claim_id": "C002",
+        "evidence_id": "E002"
+      },
+      {
+        "name": "insufficient_reason",
+        "status": "pass",
+        "detail": "DFOS 块级分辨率不足，25/50/70 阈值落在同一 block",
+        "claim_id": "C003"
+      },
+      {
+        "name": "tool_reexecution",
+        "status": "pass",
+        "detail": "recomputed warn50_pct=5.0",
+        "claim_id": "C003",
+        "evidence_id": "E003"
+      },
+      {
+        "name": "coverage",
+        "status": "pass",
+        "detail": "coverage 1.0",
+        "claim_id": "C003",
+        "evidence_id": "E003"
+      },
+      {
+        "name": "insufficient_reason",
+        "status": "pass",
+        "detail": "PZT t85 在寿命末端删失，不能作为精确失效点",
+        "claim_id": "C004"
+      },
+      {
+        "name": "tool_reexecution",
+        "status": "pass",
+        "detail": "recomputed t85_pct=100.0",
+        "claim_id": "C004",
+        "evidence_id": "E004"
+      },
+      {
+        "name": "coverage",
+        "status": "pass",
+        "detail": "partial coverage 0.9344; claim is limited to observed interval",
+        "claim_id": "C004",
+        "evidence_id": "E004"
+      },
+      {
+        "name": "insufficient_reason",
+        "status": "pass",
+        "detail": "raw FBG has only 2 loading windows; at least 5 required",
+        "claim_id": "C005"
+      },
+      {
+        "name": "verification_status",
+        "status": "pass",
+        "detail": "0 failed check(s)"
+      }
+    ]
+  }
+}

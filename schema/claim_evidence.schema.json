@@ -156,6 +156,12 @@
           "maximum": 1,
           "description": "Fraction of the lifetime actually observed by the tool; <0.95 blocks cross-specimen claims."
         },
+        "coverage_basis": {
+          "type": ["string", "null"],
+          "enum": ["lifetime", "partial", "block", "not_applicable", null],
+          "default": "lifetime",
+          "description": "Why coverage is absent or partial: FBG has no cycle anchor, DFOS is block-level, PZT may start after 0."
+        },
         "retrieved_at": { "type": "string", "format": "date-time" },
         "content_hash": { "type": ["string", "null"] },
         "reliability": {
@@ -215,6 +221,7 @@
           "items": { "type": "string", "pattern": "^T[0-9]{3,}$" }
         },
         "scope": { "$ref": "#/$defs/Scope" },
+        "boundary": { "$ref": "#/$defs/Boundary" },
         "allowed_lifetime_max": {
           "type": ["number", "null"],
           "minimum": 0,
@@ -229,6 +236,54 @@
         "created_by": {
           "type": "string",
           "enum": ["DataAuditor", "Analyst", "StandardsChecker", "Writer", "Critic", "Human"]
+        }
+      }
+    },
+    "Boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Modality-specific limits that prevent a tool number from being read as a physical or lifetime point.",
+      "properties": {
+        "cycle_anchor": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "description": "Lifetime fraction or cycle anchor. FBG leaves this null because its axis is a loading-window index."
+        },
+        "threshold_resolved": {
+          "type": ["boolean", "null"],
+          "description": "True only when 25/50/70 thresholds fall in distinct blocks."
+        },
+        "hi_ceiling": {
+          "type": ["number", "null"],
+          "description": "Normalization ceiling reached by the DFOS block HI; not physical saturation."
+        },
+        "threshold_reached": {
+          "type": ["boolean", "null"],
+          "description": "Whether the PZT cumulative curve reached the threshold at all."
+        },
+        "crossing_interval_pct": {
+          "type": ["array", "null"],
+          "items": {"type": "number"},
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "PZT interval [previous state, crossing state] in lifetime percent; [a,b] is not an exact point."
+        },
+        "censored": {
+          "type": ["boolean", "null"],
+          "description": "True when the threshold is only reached in the final interval."
+        },
+        "time_axis": {
+          "type": ["boolean", "null"],
+          "description": "True when the fraction is over observed time, not cycles. F-MOC is the only current case."
+        },
+        "test_end_uncertain": {
+          "type": ["boolean", "null"],
+          "description": "True when AE continues beyond the last DIC frame by more than 2%, so test end is only bounded."
+        },
+        "dic_last_h": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "description": "Last DIC frame in hours; F-MOC uses it only as a lower bound on test end."
         }
       }
     },

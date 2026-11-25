@@ -1,0 +1,158 @@
+[
+  {
+    "id": "H01",
+    "category": "ambiguous",
+    "gid": "L1-06",
+    "t": 0.95,
+    "question": "它为什么到 85% 才报警",
+    "expect": {
+      "intent": "unsupported",
+      "tool": "",
+      "metrics": [],
+      "status": "unsupported"
+    },
+    "why": "没有指代对象，应该追问而不是默认 L1-06"
+  },
+  {
+    "id": "H02",
+    "category": "wrong_premise",
+    "gid": "L1-03",
+    "t": 0.95,
+    "question": "L1-03 的 FBG t85 是 94.86，对吗",
+    "expect": {
+      "intent": "unsupported",
+      "tool": "",
+      "metrics": [],
+      "status": "unsupported"
+    },
+    "why": "L1-03 当前没有可签的 FBG t85，不能确认错误前提"
+  },
+  {
+    "id": "H03",
+    "category": "unknown_data",
+    "gid": "NASA-X",
+    "t": 0.95,
+    "question": "NASA-X 的 t85 是多少",
+    "expect": {
+      "intent": "unsupported",
+      "tool": "",
+      "metrics": [],
+      "status": "http_404"
+    },
+    "why": "未知数据集不得映射到 L1 或 F-MOC"
+  },
+  {
+    "id": "H04",
+    "category": "cross_case",
+    "gid": "L1-06",
+    "t": 0.95,
+    "question": "把 L1-06 的 t85 和 L1-13 的 PZT 比一下",
+    "expect": {
+      "intent": "unsupported",
+      "tool": "",
+      "metrics": [],
+      "status": "unsupported"
+    },
+    "why": "跨 gid 比较不在当前单 gid 契约内"
+  },
+  {
+    "id": "H05",
+    "category": "invalid_fusion",
+    "gid": "L1-03",
+    "t": 0.95,
+    "question": "L1-03 四个模态 t85 平均是多少",
+    "expect": {
+      "intent": "conflict_case",
+      "tool": "conflict",
+      "metrics": [],
+      "status": "partial"
+    },
+    "why": "四个模态不可比，系统应拒绝求平均"
+  },
+  {
+    "id": "H06",
+    "category": "multi_step",
+    "gid": "L1-06",
+    "t": 0.95,
+    "question": "先看 L1-06 的 t85，再看 L1-13 的 PZT，最后说哪个更晚",
+    "expect": {
+      "intent": "unsupported",
+      "tool": "",
+      "metrics": [],
+      "status": "unsupported"
+    },
+    "why": "真正的多步跨 gid 编排尚未实现"
+  },
+  {
+    "id": "H07",
+    "category": "modality_boundary",
+    "gid": "L1-30",
+    "t": 0.95,
+    "question": "L1-30 的 FBG 能不能给 t85",
+    "expect": {
+      "intent": "fbg_profile",
+      "tool": "fbg",
+      "metrics": [],
+      "status": "ok"
+    },
+    "why": "只能给窗口剖面，必须明确回答不能给 t85"
+  },
+  {
+    "id": "H08",
+    "category": "temporal",
+    "gid": "L1-06",
+    "t": 0.62,
+    "question": "L1-06 在 62% 时能看到 93.76% 的结论吗",
+    "expect": {
+      "intent": "metric_query",
+      "tool": "metric",
+      "metrics": [
+        "t85"
+      ],
+      "status": "refused"
+    },
+    "why": "时间门必须挡住全寿命结论"
+  },
+  {
+    "id": "H09",
+    "category": "report_audit",
+    "gid": "L1-03",
+    "t": 0.95,
+    "question": "报告里写 L1-03 AE t85=76.29，这个数能用吗",
+    "expect": {
+      "intent": "unsupported",
+      "tool": "",
+      "metrics": [],
+      "status": "unsupported"
+    },
+    "why": "系统没有报告审计工具，不能替旧表背书"
+  },
+  {
+    "id": "H10",
+    "category": "wrong_tool",
+    "gid": "L1-06",
+    "t": 0.95,
+    "question": "L1-06 的 DFOS 预警点是多少",
+    "expect": {
+      "intent": "unsupported",
+      "tool": "",
+      "metrics": [],
+      "status": "unsupported"
+    },
+    "why": "L1-06 没有 DFOS 工具，不能跨工具借用"
+  },
+  {
+    "id": "H11",
+    "category": "unknown_data",
+    "gid": "spec2",
+    "t": 0.95,
+    "question": "F-MOC spec2 的 t85 是多少",
+    "expect": {
+      "intent": "fmoc_profile",
+      "tool": "fmoc",
+      "metrics": [],
+      "status": "partial"
+    },
+    "why": "F-MOC 已接入，DIC 末帧不确定，只能部分签发"
+  }
+]

@@ -56,9 +56,40 @@ def _run_metric(args: dict) -> dict:
     return obj["data"]
 
 
+def _run_skill(tool: str, args: dict) -> dict:
+    """Re-execute one modality skill in a fresh process."""
+    gid = str(args.get("gid", ""))
+    base = str(args.get("base", "post"))
+    stride = int(args.get("stride", 1) or 1)
+    key = (tool, gid, base, stride)
+    if key in _TOOL_CACHE:
+        return _TOOL_CACHE[key]
+    cmd = [sys.executable, os.path.join(ROOT, "skills", tool, "run.py"),
+           "--gid", gid, "--json"]
+    if tool == "dfos":
+        cmd += ["--base", base]
+    if tool == "pzt":
+        cmd += ["--stride", str(stride)]
+    p = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True,
+                       encoding="utf-8", timeout=1800)
+    try:
+        obj = json.loads(p.stdout)
+    except Exception as exc:
+        raise RuntimeError(f"{tool} output is not JSON: {p.stdout[:200]!r} / {p.stderr[:200]!r}") from exc
+    if obj.get("status") != "ok":
+        raise RuntimeError(f"{tool} status={obj.get('status')}: "
+                           f"{obj.get('data', {}).get('reason', '')}")
+    _TOOL_CACHE[key] = obj["data"]
+    return obj["data"]
+
+
 TOOL_RUNNERS = {
     "metric.l1_t85": _run_metric,
     "metric.l1_t50": _run_metric,
+    "fbg.profile": lambda args: _run_skill("fbg", args),
+    "dfos.block": lambda args: _run_skill("dfos", args),
+    "pzt.index": lambda args: _run_skill("pzt", args),
+    "fmoc.profile": lambda args: _run_skill("fmoc", args),
 }
 
 
@@ -265,10 +296,18 @@ def validate_graph(graph: dict, schema: dict) -> Report:
                                 rep.add("tool_reexecution", "fail", str(exc), cid, eid)
 
                 cov = ev.get("coverage")
-                if cov is None:
+                basis = ev.get("coverage_basis") or "lifetime"
+                if basis == "not_applicable":
+                    rep.add("coverage", "pass",
+                            "coverage not applicable (no lifetime anchor)", cid, eid)
+                elif cov is None:
                     rep.add("coverage", "fail", "tool_result needs coverage", cid, eid)
-                elif float(cov) < 0.95:
+                elif float(cov) < 0.95 and basis != "partial":
                     rep.add("coverage", "fail", f"coverage {cov} < 0.95", cid, eid)
+                elif basis == "partial":
+                    rep.add("coverage", "pass",
+                            f"partial coverage {cov}; claim is limited to observed interval",
+                            cid, eid)
                 else:
                     rep.add("coverage", "pass", f"coverage {cov}", cid, eid)
 
@@ -295,6 +334,31 @@ def validate_graph(graph: dict, schema: dict) -> Report:
                         rep.add("temporal_leakage", "fail",
                                 f"evidence lifetime_max {ev_max} > allowed {allowed}", cid, eid)
 
+        # boundary fields are not decoration: they forbid signing a point when
+        # the tool says the threshold is unresolved, censored, or unanchored.
+        boundary = c.get("boundary") or {}
+        if c["status"] == "supported" and boundary:
+            pred = c.get("predicate")
+            if (pred in ("warn25_pct", "warn50_pct", "warn70_pct")
+                    and boundary.get("threshold_resolved") is False):
+                rep.add("boundary_consistency", "fail",
+                        "threshold_resolved=false but claim is supported", cid)
+            if pred == "t85_pct" and boundary.get("censored") is True:
+                rep.add("boundary_consistency", "fail",
+                        "censored PZT t85 cannot be a supported point claim", cid)
+            if pred == "shape_rob25_last" and boundary.get("cycle_anchor") is not None:
+                rep.add("boundary_consistency", "fail",
+                        "FBG window claim has a non-null cycle_anchor", cid)
+            if pred == "t85_pct" and boundary.get("threshold_reached") is False:
+                rep.add("boundary_consistency", "fail",
+                        "PZT threshold_reached=false but t85 claim is supported", cid)
+            if pred == "t85_hit_pct" and boundary.get("time_axis") is not True:
+                rep.add("boundary_consistency", "fail",
+                        "F-MOC time-axis claim must set boundary.time_axis=true", cid)
+            if pred == "t85_dic_pct" and boundary.get("test_end_uncertain") is True:
+                rep.add("boundary_consistency", "fail",
+                        "F-MOC t85_dic cannot be supported when test_end_uncertain=true", cid)
+
         # non-numeric claims must quote a phrase that actually appears in a
         # literature/standard evidence item; a bare citation is not enough.
         if c["status"] == "supported" and c["claim_type"] in (
@@ -313,9 +377,13 @@ def validate_graph(graph: dict, schema: dict) -> Report:
                 rep.add("support_quote", "pass" if ok else "fail",
                         "exact phrase found" if ok else "phrase not found in cited quote", cid)
 
-        # numeric claims (including numeric comparative claims) require a
-        # tool result with matching metric/value.
-        if c["status"] == "supported" and _num(c.get("value")) is not None:
+        # numeric claims require a tool result with matching metric/value.
+        # The derived AE-PZT gap is different: no single evidence item has
+        # metric t85_gap_pp; it is recomputed from the two t85 evidence items.
+        derived_gap = c.get("predicate") == "t85_gap_pp"
+        if (c["status"] == "supported"
+                and _num(c.get("value")) is not None
+                and not derived_gap):
             matches = []
             for eid in eids:
                 ev = e_by_id.get(eid)
@@ -330,6 +398,32 @@ def validate_graph(graph: dict, schema: dict) -> Report:
                         "no matching tool_result evidence", cid)
             else:
                 rep.add("numeric_value", "pass", matches[0][1], cid, matches[0][0])
+        elif c["status"] == "supported" and derived_gap:
+            values: dict[str, float] = {}
+            for eid in eids:
+                ev = e_by_id.get(eid)
+                if not ev or ev.get("evidence_type") != "tool_result":
+                    continue
+                content = ev.get("content") or {}
+                if content.get("metric") != "t85_pct":
+                    continue
+                modality = (ev.get("scope") or {}).get("modality")
+                value = _num(content.get("value"))
+                if modality and value is not None:
+                    values[modality] = value
+            if "AE" not in values or "PZT" not in values:
+                rep.add("derived_value", "fail",
+                        "gap claim needs AE and PZT t85 evidence", cid)
+            else:
+                expected = values["AE"] - values["PZT"]
+                tol = _num(c.get("tolerance")) or 1e-6
+                got = _num(c.get("value"))
+                if got is None or abs(got - expected) > tol:
+                    rep.add("derived_value", "fail",
+                            f"AE-PZT gap {got} != {expected}", cid)
+                else:
+                    rep.add("derived_value", "pass",
+                            f"AE-PZT gap recomputed {expected:.6f}", cid)
 
         # tool call references
         for tid in c.get("tool_call_ids") or []:

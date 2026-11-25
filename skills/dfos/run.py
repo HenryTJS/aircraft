@@ -73,6 +73,10 @@ def compute(gid: str, base_mode: str = "post") -> dict:
     warn50_pct = _pct(warn50, n_f)
     warn70_pct = _pct(warn70, n_f)
     tail_mono = _num(row.get("tail_mono"))
+    warn_values = [warn25_pct, warn50_pct, warn70_pct]
+    threshold_resolved = (all(v is not None for v in warn_values)
+                          and len(set(warn_values)) == 3)
+    hi_ceiling = 1.0 if (hi_end is not None and hi_end >= 0.999) else None
     saturation = (hi_end is not None and hi_end >= 0.999
                   and warn25_pct is not None
                   and warn25_pct == warn50_pct == warn70_pct)
@@ -97,6 +101,8 @@ def compute(gid: str, base_mode: str = "post") -> dict:
         "rmse_end": _num(row.get("rmse_end")),
         "spike_fix": _num(row.get("spike_fix")),
         "saturation": bool(saturation),
+        "threshold_resolved": bool(threshold_resolved),
+        "hi_ceiling": hi_ceiling,
         "raw_dfos": str(raw),
         "coverage": None,
     }
@@ -107,7 +113,7 @@ def compute(gid: str, base_mode: str = "post") -> dict:
     if n_blk < 5:
         warnings.append(f"只有 {n_blk} 个 block，块级 HI 不稳定。")
     if saturation:
-        warnings.append("HI 到 1.0 且 0.25/0.50/0.70 同刻，指标饱和，不能用作分级。")
+        warnings.append("HI 到归一化上限 1.0 且 0.25/0.50/0.70 同 block，块级分辨率不足，不能分级；这不是物理饱和。")
     if base_mode == "post":
         warnings.append("健康基准是冲击后前 10 段；不是冲击前真健康态，解释时要标 base=post。")
 
@@ -130,6 +136,8 @@ def compute(gid: str, base_mode: str = "post") -> dict:
             "hi_end": hi_end,
             "warn50_pct": warn50_pct,
             "saturation": bool(saturation),
+            "threshold_resolved": bool(threshold_resolved),
+            "hi_ceiling": hi_ceiling,
             "axis": "cycle",
             "coverage": None,
         },

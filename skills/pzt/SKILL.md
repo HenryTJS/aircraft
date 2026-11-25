@@ -19,15 +19,15 @@
 {
   "gid": "L1-06",
   "modality": "PZT",
-  "n_states": 22,
-  "life_min_pct": 4.3,
+  "n_states": 39,
+  "life_min_pct": 5.14,
   "life_max_pct": 100.0,
-  "D_sum": 12.4,
-  "t50_pct": 71.0,
+  "D_sum": 5.267299,
+  "t50_pct": 66.8314,
   "t85_pct": 100.0,
-  "tof_drift_us": 0.31,
-  "tof_slope_ts": 0.0004,
-  "coverage": 0.957,
+  "tof_drift_us": 1.232081,
+  "tof_slope_ts": 0.013583,
+  "coverage": 0.9486,
   "censored": true,
   "n_f": 202300,
   "axis": "cycle"
@@ -48,11 +48,12 @@
 ## 规则
 
 1. `D` 不是裂纹长度，也不是损伤物理量；
-2. t85=100 多数是删失，不能当精确失效点；
+2. t85=100 是寿命末端边界/删失，不能当精确失效点；不能据此说“仍未越阈”；
 3. TOF 斜率下界 <= 0 时趋势不显著；
 4. 只允许 `pzt_crosslab.BATCH` 中的组，其他组 `unsupported`；
 5. 工具可能很慢，单组几十秒到几分钟；先小规模验证再批量；
-6. 不读 `_l1cyc` / `l1_hi_ae`，`nf_of` / `life_map` 已覆盖。
+6. 不读 `_l1cyc` / `l1_hi_ae`，`nf_of` / `life_map` 已覆盖；
+7. 已用 `L1-06` 验证：`n_states=39`、`t50=66.8314`、`t85=100.0`、`D_sum=5.2673`、`coverage=0.9486`，与 `pzt_crosslab_summary.csv` 一致；在第一个 `life=100%` 状态累计 86.45%，已越过 85%，不能说“仍未越阈”，只能报“落在寿命末端，无法区分之前还是 100% 处越阈”。
 
 ## 命令
 

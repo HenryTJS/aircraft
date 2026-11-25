@@ -35,6 +35,11 @@
       "entry": "skills/pzt/run.py",
       "contract": "skills/pzt/schema.json",
       "doc": "skills/pzt/SKILL.md"
+    },
+    "fmoc": {
+      "entry": "skills/fmoc/run.py",
+      "contract": "skills/fmoc/schema.json",
+      "doc": "skills/fmoc/SKILL.md"
     }
   }
 }

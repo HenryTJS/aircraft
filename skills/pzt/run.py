@@ -16,9 +16,12 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import contextlib
 import math
 import os
 import sys
+
+import numpy as np
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -75,7 +78,27 @@ def compute(gid: str, stride: int = 1) -> dict:
         coverage = round(max(0.0, min(1.0, (life_max - life_min) / 100.0)), 4)
     t85 = _num(summary.get("t85"))
     t50 = _num(summary.get("t50"))
-    censored = bool(t85 is not None and (t85 >= 99.9 or (life_max is not None and life_max < 100.0)))
+    # The cumulative D curve always reaches its own 85% at the last state at
+    # the latest. Keep the crossing interval so a t85=100 can be read as
+    # "crossed somewhere inside the last interval", not as an exact point.
+    crossing_interval = None
+    threshold_reached = False
+    if rows:
+        d = np.array([r.get("D", np.nan) for r in rows], dtype=float)
+        x = np.array([r.get("life_pct", np.nan) for r in rows], dtype=float)
+        ok = np.isfinite(d) & np.isfinite(x) & (x >= 0) & (x <= 100)
+        x, d = x[ok], d[ok]
+        if len(x):
+            order = np.argsort(x)
+            x, d = x[order], d[order]
+            cum = np.cumsum(d)
+            total = float(cum[-1])
+            if total > 0:
+                threshold_reached = True
+                j = min(int(np.searchsorted(cum, 0.85 * total)), len(x) - 1)
+                left = float(x[j - 1]) if j > 0 else float(x[j])
+                crossing_interval = [round(left, 3), round(float(x[j]), 3)]
+    censored = bool(threshold_reached and t85 is not None and t85 >= 99.9)
     lo = _num(summary.get("tof_slope_ts_lo"))
 
     data = {
@@ -99,19 +122,21 @@ def compute(gid: str, stride: int = 1) -> dict:
         "kendall_p": _num(summary.get("kendall_p")),
         "coverage": coverage,
         "stride": int(stride),
+        "threshold_reached": bool(threshold_reached),
+        "crossing_interval_pct": crossing_interval,
         "censored": censored,
         "raw_pzt": str(raw),
     }
 
     warnings: list[str] = [
-        "PZT 的 D 是相邻状态退相关中位，不是裂纹长度；t85=100 通常表示到寿命终点才越阈，属删失。",
+        "PZT 的 D 是相邻状态退相关中位，不是裂纹长度；t85=100 落在寿命末端，属边界/删失，不是精确失效点。",
     ]
     if data["n_states"] < 12:
         warnings.append(f"只有 {data['n_states']} 个状态，累积曲线不稳定。")
     if life_min is not None and life_min > 5.0:
         warnings.append(f"PZT 起点在寿命 {life_min:.1f}%，不是 0。")
     if censored:
-        warnings.append("t85 落在寿命末端或未真正越阈，不能当精确失效点。")
+        warnings.append("t85 落在寿命末端，无法区分 100% 前刚越阈还是 100% 处才越阈，不能当精确失效点。")
     if lo is not None and lo <= 0:
         warnings.append("TOF 漂移 Theil-Sen 95% 下界不高于 0，趋势不显著。")
     if stride > 1:
@@ -135,6 +160,8 @@ def compute(gid: str, stride: int = 1) -> dict:
             "n_states": data["n_states"],
             "t50_pct": t50,
             "t85_pct": t85,
+            "threshold_reached": bool(threshold_reached),
+            "crossing_interval_pct": crossing_interval,
             "tof_slope_ts": data["tof_slope_ts"],
             "coverage": coverage,
             "axis": "cycle",
@@ -165,7 +192,10 @@ def main(argv=None) -> int:
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args(argv)
     try:
-        obj = compute(args.gid, args.stride)
+        # datasets/pzt_crosslab emit PDF-parser notices on stdout during import.
+        # Keep stdout for the JSON envelope only; diagnostics go to stderr.
+        with contextlib.redirect_stdout(sys.stderr):
+            obj = compute(args.gid, args.stride)
     except Exception as exc:  # noqa: BLE001
         obj = envelope(
             "pzt", "unsupported",
