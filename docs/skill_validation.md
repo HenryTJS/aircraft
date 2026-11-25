@@ -51,6 +51,18 @@ conda run --no-capture-output -n xjtushm python skills\pzt\run.py --gid L1-06 --
 - `tests/test_skill_claims.py` 7/7 通过；`tests/test_validate.py` 10/10 通过。
 - DFOS 的 `coverage` 由 builder 补为 1.0，因为工具扫描全试验；其限制写在 `coverage_basis=block` 和 `threshold_resolved`，不是寿命覆盖不足。
 
+## L1 短试验帧宽补充（2026-11-25）
+
+`skills/metric/run.py` 增加 `FRAME_S_BY_GID`，对短 C4 组改帧宽：L1-30=60 s、L1-34=30 s、L1-36=60 s。原因与对照：
+
+| gid | 帧宽 | raw t85 | canonical | 差 |
+|---|---:|---:|---:|---:|
+| L1-30 | 60 s | 94.3812 | 94.38 | 0.00 pp |
+| L1-34 | 30 s | 82.6846 | 82.68 | 0.00 pp |
+| L1-36 | 60 s | 84.8367 | 84.6992 | 0.14 pp |
+
+600 s 帧对 L1-36 只剩 5 帧，给 77.82%，与看板 84.70 不可比；因此不能把 600 s 硬套到短试验。L1-36 的 0.14 pp 差异来自 43 帧 vs canonical 42 帧的边界取法，看板仍为 84.70，claim/API 为 84.84。
+
 ## 已做检查
 
 - `py_compile` 三个工具通过；

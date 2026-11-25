@@ -45,12 +45,13 @@
     'gaugeArc', 'gaugeMark25', 'gaugeMark55', 'gaugeMark85', 'dVal', 'dBadge', 'dMax', 'dLife',
     'dMargin', 'gaugeTag', 'tLv1', 'tLv2', 'tLv3', 'verdict', 'verdictSub',
     'barAE', 'barST', 'barRK', 'valAE', 'valST', 'valRK', 'evBars',
-    'vAE', 'vFO', 'vST', 'vEV', 'logList', 'logCount', 'hAEn', 'hFOn', 'hSTn', 'hDIn',
+    'vAE', 'vFO', 'vST', 'vPZT', 'logList', 'logCount', 'hAEn', 'hFOn', 'hSTn', 'hDIn',
+    'hPZc', 'hPZn', 'hPZs',
     'hFOc', 'hFOs', 'chanBody', 'equipRig', 'equipMode', 'tAE', 'tFO', 'tST', 'boot', 'bootText',
     'tDmg', 'tTrend', 'dUnit', 'lgD', 'dMarginLbl', 'thLv1', 'thLv2', 'thLv3',
     'dMaxLbl', 'algoInfo',
     'dfosRow', 'tDF', 'vDF', 'cvDFHeat', 'cvDFProf',
-    'cvTrend', 'cvAE', 'cvFO', 'cvST', 'cvEV', 'lgB2', 'lgB3', 'lgC0', 'lgRef', 'lgRefT', 'lgBand',
+    'cvTrend', 'cvAE', 'cvFO', 'cvST', 'cvPZT', 'lgB2', 'lgB3', 'lgC0', 'lgRef', 'lgRefT', 'lgBand',
     'snhiStrip', 'snhi25', 'snhi55', 'snhi85', 'snhiNote'
   ].forEach(function (k) { el[k] = $(k); });
 
@@ -336,7 +337,7 @@
     drawAE(d, c, f);
     drawFO(d, c, f);
     drawST(d, c, f);
-    drawEV(d, c, f);
+    drawPZT(d, c, f);
     drawDFOS(d, c, f);
     drawGauge(d, c, f);
     drawSide(d, c, f);
@@ -602,38 +603,88 @@
     ctx.fillText(dfos ? 'DFOS 峰' : '波动 σ', b.x + 76, b.y + b.h + 11);
   }
 
-  /* ---- 证据层 ---- */
-  function drawEV(d, c, f) {
-    var o = prep(el.cvEV), ctx = o.ctx;
-    var b = box(o.w, o.h, 26, 8, 6, 14);
+  /* ---- PZT 导波：损伤指数 / TOF 漂移（显示层，来自 raw-derived pzt_crosslab） ---- */
+  function drawPZT(d, c, f) {
+    var o = prep(el.cvPZT), ctx = o.ctx;
+    var b = box(o.w, o.h, 30, 10, 6, 14);
     bg(ctx, b);
-    grid(ctx, b, 6, 4, function (t) { return t.toFixed(2); });
-    var w = win(d, f), i0 = w[0], i1 = w[1];
-    hline(ctx, b, yOf(.25, 0, 1, b), 'rgba(255,201,60,.35)', [3, 3]);
-    hline(ctx, b, yOf(.55, 0, 1, b), 'rgba(255,138,31,.35)', [3, 3]);
-    hline(ctx, b, yOf(.85, 0, 1, b), 'rgba(255,59,71,.4)', [3, 3]);
-    var lg;
-    if (c.indics && c.indics.length) {
-      // 数据包声明的证据通道（L1 第三批：AE 活动度 / FBG 剖面漂移 / Fano 簇状性）
-      c.indics.forEach(function (p) {
-        plotLine(ctx, b, p.s, i0, i1, 0, 1, p.color, { width: 1.1 });
-      });
-      plotLine(ctx, b, c.risk, i0, i1, 0, 1, C_RISK, { width: 1.8, glow: 7 });
-      lg = c.indics.map(function (p) { return [p.key, p.color]; });
-      lg.push(['risk', C_RISK]);
-    } else {
-      plotLine(ctx, b, c.eae, i0, i1, 0, 1, 'rgba(255,208,138,.9)', { width: 1.1 });
-      plotLine(ctx, b, c.est, i0, i1, 0, 1, 'rgba(0,227,154,.85)', { width: 1.1 });
-      plotLine(ctx, b, c.risk, i0, i1, 0, 1, C_RISK, { width: 1.8, glow: 7 });
-      lg = [['e_ae', 'rgba(255,208,138,.95)'], ['e_st', 'rgba(0,227,154,.95)'], ['risk', C_RISK]];
+    grid(ctx, b, 5, 4, function (t) { return t.toFixed(1); });
+    var pz = (window.SHM_PZT || {})[d.gid];
+    if (!pz || !pz.life || !pz.life.length) {
+      if (el.vPZT) el.vPZT.textContent = '未采 PZT';
+      ctx.fillStyle = '#5b7288';
+      ctx.font = '11px "Cascadia Mono",Consolas,monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('该试件未采 PZT 导波数据', b.x + b.w / 2, b.y + b.h / 2);
+      ctx.textAlign = 'left';
+      return;
     }
+
+    var life = pz.life, n = life.length;
+    var tmin = Infinity, tmax = -Infinity;
+    for (var i = 0; i < n; i++) {
+      if (pz.tof_drift[i] != null && isFinite(pz.tof_drift[i])) {
+        tmin = Math.min(tmin, pz.tof_drift[i]);
+        tmax = Math.max(tmax, pz.tof_drift[i]);
+      }
+    }
+    if (!isFinite(tmin)) { tmin = 0; tmax = 1; }
+    if (tmax - tmin < 1e-9) tmax = tmin + 1;
+
+    function xAt(pct) { return b.x + b.w * Math.max(0, Math.min(1, pct / 100)); }
+    function yD(v) { return b.y + b.h * (1 - Math.max(0, Math.min(1, v))); }
+    function yT(v) { return b.y + b.h * (1 - (v - tmin) / (tmax - tmin)); }
+
+    // D 的三条分级线
+    hline(ctx, b, yD(.25), 'rgba(255,201,60,.30)', [3, 3]);
+    hline(ctx, b, yD(.55), 'rgba(255,138,31,.30)', [3, 3]);
+    hline(ctx, b, yD(.85), 'rgba(255,59,71,.35)', [3, 3]);
+
+    function stroke(points, color, width) {
+      ctx.beginPath();
+      var started = false;
+      points.forEach(function (p) {
+        if (p[1] == null || !isFinite(p[1])) { started = false; return; }
+        if (!started) { ctx.moveTo(p[0], p[1]); started = true; }
+        else ctx.lineTo(p[0], p[1]);
+      });
+      ctx.strokeStyle = color; ctx.lineWidth = width || 1.2;
+      ctx.stroke();
+    }
+    var dpts = [], tpts = [];
+    for (var j = 0; j < n; j++) {
+      var x = xAt(life[j]);
+      dpts.push([x, pz.D[j] == null ? null : yD(pz.D[j])]);
+      tpts.push([x, pz.tof_drift[j] == null ? null : yT(pz.tof_drift[j])]);
+    }
+    stroke(tpts, 'rgba(176,124,255,.9)', 1.2);
+    stroke(dpts, 'rgba(255,177,74,.95)', 1.8);
+
+    // 当前时间游标
+    var frac = d.nfr > 1 ? f / (d.nfr - 1) : 1;
+    var lf = frac * 100;
+    var cur = 0;
+    for (var k = 0; k < n; k++) if (life[k] <= lf) cur = k;
+    var cd = pz.D[cur], ct = pz.tof_drift[cur];
+    ctx.strokeStyle = 'rgba(0,229,255,.5)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(xAt(lf), b.y); ctx.lineTo(xAt(lf), b.y + b.h); ctx.stroke();
+
+    if (el.vPZT) {
+      el.vPZT.textContent = (cd == null ? 'D —' : 'D ' + Number(cd).toFixed(3)) +
+        (ct == null ? ' · ΔTOF —' : ' · ΔTOF ' + Number(ct).toFixed(2) + ' µs') +
+        (pz.t85 == null ? '' : ' · t85 ' + Number(pz.t85).toFixed(1) + '%' +
+          (Number(pz.t85) >= 99.9 ? '（删失）' : ''));
+    }
+
     ctx.font = '9px "Cascadia Mono",Consolas,monospace';
     ctx.textBaseline = 'bottom';
-    lg.forEach(function (p, idx) {
-      var x = b.x + 4 + idx * 40;
-      ctx.fillStyle = p[1]; ctx.fillRect(x, b.y + b.h + 5, 7, 2);
-      ctx.fillStyle = '#5b7288'; ctx.fillText(p[0], x + 10, b.y + b.h + 11);
-    });
+    ctx.fillStyle = 'rgba(255,177,74,.95)'; ctx.fillRect(b.x + 4, b.y + b.h + 5, 7, 2);
+    ctx.fillStyle = '#5b7288'; ctx.fillText('D', b.x + 14, b.y + b.h + 11);
+    ctx.fillStyle = 'rgba(176,124,255,.9)'; ctx.fillRect(b.x + 44, b.y + b.h + 5, 7, 2);
+    ctx.fillStyle = '#5b7288'; ctx.fillText('ΔTOF', b.x + 54, b.y + b.h + 11);
+    ctx.fillStyle = '#40566d'; ctx.textAlign = 'right';
+    ctx.fillText('寿命 %', b.x + b.w, b.y + b.h + 11);
+    ctx.textAlign = 'left';
   }
 
   /* ---- 分布式应变空间分布 / 相对基线偏离热图 (L1 专有) ---- */
@@ -934,6 +985,11 @@
       el.chanBody.appendChild(tr);
       S.chanCells[ch.key] = { n: tr.children[3], s: tr.children[4].firstChild };
     });
+    var pzRow = document.createElement('tr');
+    pzRow.innerHTML = '<td>导波 PZT</td><td>状态步进</td><td id="hPZc">—</td>' +
+      '<td class="n" id="hPZn">0</td><td><span class="st" id="hPZs">未采</span></td>';
+    el.chanBody.appendChild(pzRow);
+    el.hPZc = $('hPZc'); el.hPZn = $('hPZn'); el.hPZs = $('hPZs');
   }
 
   function setChan(key, txt) {
@@ -977,7 +1033,7 @@
     } else {
       el.hAEn.textContent = fmtNum(aeN) + ' 事件';
       el.hFOn.textContent = nCh ? fmtNum(rawPts) + ' 点 × ' + nCh + ' 通道' : '—';
-      el.hSTn.textContent = fmtNum(rawPts) + ' 点';
+      if (el.hSTn) el.hSTn.textContent = fmtNum(rawPts) + ' 点';
       el.hDIn.textContent = fmtNum(Math.floor(rawPts / 500)) + ' 块';
       el.hFOc.textContent = nCh || '0';
       if (nCh) { el.hFOs.textContent = '在线'; el.hFOs.className = 'st ok'; }
@@ -996,7 +1052,14 @@
     }
     el.vST.textContent = c.st[f].toFixed(1) + ' με' +
       (c.dloc ? ' | DFOS峰 ' + c.dloc[f].toFixed(0) : '');
-    el.vEV.textContent = 'e_ae ' + c.eae[f].toFixed(2) + ' | risk ' + c.risk[f].toFixed(2);
+
+    var pz = (window.SHM_PZT || {})[d.gid];
+    if (el.hPZs) {
+      el.hPZs.textContent = pz ? '在线' : '未采';
+      el.hPZs.className = 'st' + (pz ? ' ok' : ' off');
+    }
+    if (el.hPZc) el.hPZc.textContent = pz ? '1' : '—';
+    if (el.hPZn) el.hPZn.textContent = pz ? String(pz.n_states || pz.life.length) : '0';
 
     var st = el.sysState;
     st.className = 'sys-state' + (lv >= 2 ? ' alarm' : (S.playing ? ' run' : (S.frame > 0 ? ' pause' : '')));

@@ -29,6 +29,58 @@ class TestPlanner(unittest.TestCase):
         self.assertEqual(result.plan.metrics, ("t85", "t50"))
         self.assertEqual(result.plan.intent, "metric_query")
 
+    def test_resolve_gid_explicit_overrides_fallback(self) -> None:
+        gid, source = planner.resolve_gid(
+            "请分析 L1-13 的 PZT", ["L1-06", "L1-13"], "L1-06")
+        self.assertEqual((gid, source), ("L1-13", "question"))
+
+    def test_resolve_gid_fallback_without_explicit(self) -> None:
+        gid, source = planner.resolve_gid(
+            "t85 是多少", ["L1-06", "L1-13"], "L1-06")
+        self.assertEqual((gid, source), ("L1-06", "fallback"))
+
+    def test_resolve_gid_multiple_is_rejected(self) -> None:
+        gid, source = planner.resolve_gid(
+            "L1-13 和 L1-06 的 t85", ["L1-06", "L1-13"], "L1-06")
+        self.assertIsNone(gid)
+        self.assertEqual(source, "multiple")
+
+    def test_resolve_gid_spec(self) -> None:
+        gid, source = planner.resolve_gid(
+            "spec2 的 AE t85", ["spec2"], None)
+        self.assertEqual((gid, source), ("spec2", "question"))
+
+    def test_resolve_gid_adjacent_chinese(self) -> None:
+        gid, source = planner.resolve_gid(
+            "L1-22的AEt85是多少？", ["L1-22"], None)
+        self.assertEqual((gid, source), ("L1-22", "question"))
+        gid, source = planner.resolve_gid(
+            "spec2的t85", ["spec2"], None)
+        self.assertEqual((gid, source), ("spec2", "question"))
+
+    def test_resolve_all_l1_gids(self) -> None:
+        from web.datasets import load_supported
+
+        supported = load_supported()
+        l1 = [g for g in supported if g.startswith("L1-")]
+        self.assertEqual(len(l1), 29)
+        for gid in l1:
+            resolved, source = planner.resolve_gid(
+                f"{gid} 的 t85 是多少", supported, None)
+            self.assertEqual((resolved, source), (gid, "question"))
+            result = planner.compile_question(
+                f"{gid} 的 t85 是多少", gid, supported)
+            self.assertEqual(result.plan.intent, "metric_query")
+            self.assertEqual(result.plan.metrics, ("t85",))
+
+    def test_resolve_t_decimal_and_percent(self) -> None:
+        self.assertEqual(planner.resolve_t("t=0.8 时", None), (0.8, "question"))
+        self.assertEqual(planner.resolve_t("t=0.8的结论", None), (0.8, "question"))
+        self.assertEqual(planner.resolve_t("在 80% 时", None), (0.8, "question"))
+
+    def test_resolve_t_does_not_read_metric_percent(self) -> None:
+        self.assertEqual(planner.resolve_t("t85=93.76%", 1.0), (1.0, "fallback"))
+
     def test_fallback_t85(self) -> None:
         result = planner.compile_question("L1-06 的 t85 是多少", "L1-06", ["L1-06"])
         self.assertEqual(result.source, "fallback")

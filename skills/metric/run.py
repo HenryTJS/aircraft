@@ -31,6 +31,13 @@ from skills.common import emit, envelope, evidence
 from pridb import compute_l1_pridb, compute_l2_pridb
 
 FRAME_S = 600.0
+# Short C4 tests: the dashboard/canonical convention uses finer frames for
+# these groups because a 600 s grid leaves only a handful of frames.
+FRAME_S_BY_GID = {
+    "L1-30": 60.0,
+    "L1-34": 30.0,
+    "L1-36": 60.0,
+}
 CACHE = HERE.parent / "cache"
 
 
@@ -54,7 +61,8 @@ def compute_l1(gid: str) -> dict:
     from datasets import N_F_FALLBACK
 
     root = str(RawL1Adapter().root)
-    fr = ae_frames.group_frames(gid, root=root, frame_s=FRAME_S, verbose=False)
+    frame_s = FRAME_S_BY_GID.get(gid, FRAME_S)
+    fr = ae_frames.group_frames(gid, root=root, frame_s=frame_s, verbose=False)
     if fr is None or "n" not in fr:
         raise ValueError("no raw DTA frames")
     t_sec = np.asarray(fr["t_day"], dtype=float) * 86400.0
@@ -64,15 +72,15 @@ def compute_l1(gid: str) -> dict:
         raise ValueError("no raw FBG load windows")
     tf = np.asarray([p[0] for p in pts], dtype=float)
     lf = np.asarray([1.0 if p[1] > ae_cycle.P2P_LOAD else 0.0 for p in pts], dtype=float)
-    g = ae_cycle._ratio_on_grid(t_sec, tf, lf, FRAME_S,
+    g = ae_cycle._ratio_on_grid(t_sec, tf, lf, frame_s,
                                 fill=ae_cycle.FILL, n_hits=n,
-                                pause_win=ae_cycle._pause_win(FRAME_S))
+                                pause_win=ae_cycle._pause_win(frame_s))
     n_f = N_F_FALLBACK.get(gid)
     if not n_f:
         raise ValueError("no raw n_f for this gid")
-    load_s = float(np.sum(g)) * FRAME_S
+    load_s = float(np.sum(g)) * frame_s
     f_hz = n_f / load_s if load_s > 0 else float("nan")
-    cycle = np.cumsum(g * FRAME_S * f_hz)
+    cycle = np.cumsum(g * frame_s * f_hz)
     hi = np.cumsum(n) / np.sum(n)
     t50 = _t_at(hi, cycle, 0.50, n_f)
     t85 = _t_at(hi, cycle, 0.85, n_f)
@@ -80,7 +88,7 @@ def compute_l1(gid: str) -> dict:
             "n_f": int(n_f), "n_frames": int(len(n)),
             "hits": int(np.sum(n)), "f_hz": float(f_hz),
             "t50_pct": t50, "t85_pct": t85,
-            "frame_s": FRAME_S,
+            "frame_s": frame_s,
             "axis": "cycle", "load_mask": "fbg", "coverage": 1.0,
             "raw_ae": f"{root}/{gid}/AE",
             "raw_fbg": f"{root}/{gid}/FBG"}

@@ -473,6 +473,83 @@ def _default_plan(gid: str, supported) -> Plan:
                 reason=f"未提供问题，默认调用 {tool}")
 
 
+# Chinese characters are word characters in Python regex, so a trailing \b
+# fails for "L1-22的..." (digit + 的 has no word boundary). Use explicit
+# lookarounds instead: allow CJK adjacency, reject a longer Latin/number token.
+_GID_RE = re.compile(
+    r"(?<![A-Za-z0-9])(l1\s*-\s*\d{1,3}|spec\s*[1-7])(?!\d)", re.I
+)
+_T_DECIMAL_RE = re.compile(
+    r"(?<![A-Za-z0-9])t\s*=\s*(0?\.\d+|[01](?:\.\d+)?)(?!\d)", re.I
+)
+_T_PERCENT_RE = re.compile(
+    r"(?:在|当|允许(?:寿命)?(?:上限)?|t\s*=)\s*(\d{1,3})\s*%", re.I
+)
+
+
+def _normalize_gid(token: str) -> str:
+    token = re.sub(r"\s+", "", token).lower()
+    if token.startswith("l1-"):
+        return "L1-" + token[3:]
+    return token
+
+
+def resolve_gid(question: str | None, supported, fallback: str | None = None):
+    """Resolve a specimen id from explicit text, never by guessing.
+
+    Returns (gid, source). source is question/fallback/missing/unknown/multiple.
+    """
+    text = question or ""
+    found: list[str] = []
+    for match in _GID_RE.finditer(text):
+        gid = _normalize_gid(match.group(1))
+        if gid not in found:
+            found.append(gid)
+    if len(found) > 1:
+        return None, "multiple"
+    if found:
+        gid = found[0]
+        if gid in _supported_gids(supported):
+            return gid, "question"
+        return None, "unknown"
+    if fallback and fallback in _supported_gids(supported):
+        return fallback, "fallback"
+    return None, "missing"
+
+
+def resolve_t(question: str | None, fallback: float | None = None):
+    """Resolve an allowed lifetime fraction from the question.
+
+    Only explicit t=... or 在/当/允许 ... % forms are accepted. A bare percent
+    is not treated as t, because "t85=93.76%" would otherwise become t=0.9376.
+    """
+    text = question or ""
+    match = _T_DECIMAL_RE.search(text)
+    if match:
+        value = float(match.group(1))
+        if 0.0 <= value <= 1.0:
+            return value, "question"
+    match = _T_PERCENT_RE.search(text)
+    if match:
+        value = float(match.group(1)) / 100.0
+        if 0.0 <= value <= 1.0:
+            return value, "question"
+    if fallback is not None:
+        return float(fallback), "fallback"
+    return 1.0, "default"
+
+
+def resolve_context(question: str | None, supported, gid: str | None = None,
+                    t: float | None = None):
+    resolved_gid, gid_source = resolve_gid(question, supported, gid)
+    resolved_t, t_source = resolve_t(question, t)
+    return resolved_gid, resolved_t, {
+        "gid_source": gid_source,
+        "t_source": t_source,
+    }
+
+
+
 def compile_question(question: str | None, gid: str, supported) -> PlannerResult:
     """Compile a question into a validated plan; never returns a numeric answer."""
     if gid not in _supported_gids(supported):

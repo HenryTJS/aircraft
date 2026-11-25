@@ -125,7 +125,7 @@ API planner
 |---|---|
 | `adapters/raw.py` | 已完成：只读原始目录，不读 results |
 | `skills/check` | 已完成：原始模态覆盖，不报 t85 |
-| `skills/metric` | 完成：L1 C3/C4 `.DTA` + L1 C1/C2/L2 `.pridb`（1 s bin + cache） |
+| `skills/metric` | 完成：L1 C3/C4 `.DTA` + L1 C1/C2/L2 `.pridb`（1 s bin + cache）；短 C4 组按 60/30 s 帧（L1-30=60、L1-34=30、L1-36=60），L1-36 raw 84.84% 与看板 84.70% 差 0.14 pp |
 | `skills/fbg` | 已验证 L1-30：raw FBG 应变剖面/载荷窗；窗口轴，不输出 t85；C1/C3 加载窗不足会拒答；claim 示例 `L1-30_fbg.json`，`cycle_anchor=null` |
 | `skills/dfos` | 已验证 L1-03/L1-49：C1/C2 块级 HI 与预警 cycle；14 组 HI_end=1.0 是归一化上限，11 组三阈值同 block 不能分级；不是空间定位；claim 示例 `L1-03_dfos.json`，未分块阈值标 insufficient |
 | `skills/pzt` | 已验证 L1-06：raw PZT 导波退相关 t50/t85、TOF 漂移；慢，t85=100 是寿命末端边界/删失；claim 示例 `L1-06_pzt.json`，删失值标 insufficient |
@@ -135,7 +135,8 @@ API planner
 | `skills/audit` | 已完成：claim–evidence 校验 |
 | workflow（最小两步） | 已完成 L1-13：AE t85 + PZT t85 + 派生 `t85_gap_pp`，validator 从两条 evidence 重算差值；不是通用 schema/executor，固定 AE+PZT |
 | verifier | 原型：`validate.py` 重跑工具、时间门、coverage；L1-06 Web 切片已用 |
-| API planner | 受限语义编译器已接 `/api/ask`；metric/fbg/dfos/pzt/fmoc/conflict/workflow/unsupported；conflict 与 workflow 在 LLM 前确定性分流；workflow 只覆盖固定 AE+PZT |
+| API planner | 受限语义编译器已接 `/api/ask`；metric/fbg/dfos/pzt/fmoc/conflict/workflow/unsupported；29 个 L1 gid 由 `cases/l1.json` + `web/datasets.py` 注册，F-MOC spec1–7 合并；conflict 与 workflow 在 LLM 前确定性分流；workflow 只覆盖固定 AE+PZT |
+| direct ask | 顶部入口从问题解析 `L1-xx`/`specN` 与 `t=0.8`/`在 80% 时`；没写 gid 用当前看板，多个/未知 gid 拒答；没写 t 默认 1.0；响应带 `resolved.gid/t/source`；不猜试件 |
 | 本地 3B QLoRA | **未开始** |
 | case 级评测 | **v0 已跑**：30 题 5 类 + 11 题 hard set；30 题规则饱和，hard set 补守卫后 fallback 9/10、LLM 10/10，新增 F-MOC 题后 fallback 10/11；不是独立证据 |
 

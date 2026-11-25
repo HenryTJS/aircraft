@@ -148,6 +148,35 @@ This is deliberately not a workflow schema or executor. It does not accept
 arbitrary step lists, does not cross gids, and does not yet include DFOS or
 F-MOC as a second step.
 
+## Direct-ask entry
+
+The top input bar lets a question carry its own context. `resolve_gid()` accepts
+an explicit `L1-xx` or `specN`; if none is written it keeps the current board.
+Multiple or unknown gids are rejected rather than guessed. `resolve_t()` accepts
+`t=0.8` or `在 80% 时`; a bare `85%` is not treated as t, so a t85 answer is not
+mistaken for a time gate. With no explicit t, direct ask uses `t=1.0` for a
+full-life retrospective review.
+
+The response carries `resolved.gid/t/gid_source/t_source`. A browser E2E from
+the L1-06 page asked an L1-13 workflow question, switched the board to L1-13,
+and returned `ok` with 20 checks; a second question with `在 80% 时` returned
+`refused` with `temporal_leakage` and no graph.
+
+## L1 registry and short-frame exception
+
+`cases/l1.json` registers all 29 L1 gids; `web/datasets.py` merges them with
+F-MOC `spec1`–`spec7` into 36 supported gids. Tool counts are metric 29, pzt 20,
+dfos 14, fbg 9, workflow 2, conflict 1. Registration is not the same as
+end-to-end acceptance: planner resolution is tested for all 29, while claim /
+validator / API runs were sampled on representative gids.
+
+L1-30, L1-34 and L1-36 are short C4 tests. `skills/metric/run.py` uses
+`FRAME_S_BY_GID` with 60 / 30 / 60 s frames; a 600 s grid leaves only 2–13
+frames. Raw t85 values are 94.3812, 82.6846 and 84.8367; canonical values are
+94.38, 82.68 and 84.6992. L1-36 differs by 0.14 pp because raw has 43 frames
+versus canonical 42, so the dashboard still shows 84.70 while the API/claim
+uses 84.84.
+
 ## Bare API vs system
 
 `bench/compare_api.py` sends each question to the configured chat model with no

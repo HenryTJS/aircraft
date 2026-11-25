@@ -9,6 +9,7 @@
     var c1 = ["L1-03", "L1-04", "L1-05", "L1-09", "L1-23"];
     var c2 = ["L1-49", "L1-50", "L1-51", "L1-52", "L1-54", "L1-55", "L1-56", "L1-59", "L1-60"];
     var c3 = ["L1-06", "L1-13", "L1-14", "L1-22", "L1-24"];
+    if (/^spec[1-7]$/i.test(gid)) return null;
     if (c1.indexOf(gid) >= 0) return "c1";
     if (c2.indexOf(gid) >= 0) return "c2";
     if (c3.indexOf(gid) >= 0) return "c3";
@@ -26,7 +27,9 @@
   function el(id) { return document.getElementById(id); }
 
   function updateURL() {
-    var q = "ds=" + encodeURIComponent(DS) + "&gid=" + encodeURIComponent(GID) + "&t=" + state.t.toFixed(3);
+    var q = "";
+    if (DS) q += "ds=" + encodeURIComponent(DS) + "&";
+    q += "gid=" + encodeURIComponent(GID) + "&t=" + state.t.toFixed(3);
     if (state.q) q += "&q=" + encodeURIComponent(state.q);
     if (state.open) q += "&assistant=1";
     try { history.replaceState(null, "", "/?" + q); } catch (e) { /* file:// */ }
@@ -63,39 +66,34 @@
     box.textContent = text;
   }
 
-  function plannerNote(obj) {
-    var p = obj.planner || {};
-    var src = p.source || "default";
-    var model = p.model ? " · " + p.model : "";
-    var err = p.error ? '<div class="cp-meta">LLM 回退原因：' + esc(p.error) + "</div>" : "";
-    return '<div class="cp-planner">语义编译：' + esc(src) + esc(model) + err + "</div>";
+  function resolvedNote(obj) {
+    var r = obj.resolved;
+    if (!r) return "";
+    var bits = [];
+    if (r.gid) bits.push("试件 " + r.gid);
+    if (r.t != null) bits.push("允许寿命 " + pct(r.t));
+    if (!bits.length) return "";
+    return '<div class="cp-planner">' + esc(bits.join(" · ")) + "</div>";
   }
 
   function renderRefused(obj) {
     var failed = (obj.failed_checks || []).join(", ");
     status(obj.message || "时间门未通过，系统不签发 claim。", "refused");
     el("shm-copilot-answer").innerHTML =
-      plannerNote(obj) +
+      resolvedNote(obj) +
       '<div class="cp-card"><b>拒答</b><div class="cp-meta">' +
-      "允许寿命 " + pct(obj.t) + "；未返回任何 claim、evidence 或 tool_call。" +
+      "允许寿命 " + pct(obj.t) + "；未签发 claim。" +
       (failed ? "<br>failed checks: " + esc(failed) : "") +
-      "</div></div>" +
-      '<div class="cp-foot">' +
-      (obj.gate === "temporal"
-        ? "拒答不是模型措辞，而是 verifier 的 temporal gate。"
-        : "拒答不是模型措辞，而是 verifier 的边界或工具重跑校验未通过。") +
-      "页面上的曲线仍是回顾性展示，不构成在线预测。</div>";
+      "</div></div>";
   }
 
   function renderUnsupported(obj) {
     status("未编译成受支持的查询", "refused");
     el("shm-copilot-answer").innerHTML =
-      plannerNote(obj) +
+      resolvedNote(obj) +
       '<div class="cp-card"><b>不支持</b><div class="cp-meta">' +
       esc(obj.message || "当前问题不在该 gid 的白名单工具范围内。") +
-      "</div></div>" +
-      '<div class="cp-foot">这不是把问题硬套成模板：planner 只能输出白名单计划，' +
-      "越界问题不会生成 claim。</div>";
+      "</div></div>";
   }
 
   function renderOk(obj) {
@@ -110,7 +108,7 @@
     status(label + " · " + (ver.summary || "verification pass"),
       obj.status === "insufficient" ? "refused" : "ok");
 
-    var html = plannerNote(obj);
+    var html = resolvedNote(obj);
     html += '<div class="cp-answer-text">' + esc(obj.answer || "") + "</div>";
     if (obj.message) {
       html += '<div class="cp-meta">' + esc(obj.message) + "</div>";
@@ -121,48 +119,38 @@
       var allowed = c.allowed_lifetime_max == null
         ? "无寿命门"
         : "≤ " + pct(c.allowed_lifetime_max);
-      html += '<div class="cp-card"><b>' + esc(c.claim_id) + "</b> " + esc(c.text) +
-        '<div class="cp-meta">status ' + esc(st) + " · value " +
+      html += '<div class="cp-card"><b>' + esc(c.claim_id) + "</b> " +
         '<span class="cp-value">' + esc(c.value == null ? "n/a" : c.value) +
-        esc(c.unit || "") + "</span> · " +
-        esc(allowed) + " · tolerance " +
-        esc(c.tolerance == null ? "n/a" : c.tolerance) + "</div>" +
-        '<div class="cp-meta">chain ' + esc(c.claim_id || "?") + " ← " +
-        esc((c.evidence_ids || []).join(" + ") || "?") + " ← " +
-        esc((c.tool_call_ids || []).join(" + ") || "?") + "</div>" +
-        (c.missing_evidence ? '<div class="cp-meta">未签发原因：' +
-          esc(c.missing_evidence) + "</div>" : "") + "</div>";
+        esc(c.unit || "") + "</span> " +
+        '<span class="cp-badge' + (st === "supported" ? "" : " fail") + '">' +
+        esc(st) + "</span>" +
+        '<div class="cp-meta">' + esc(allowed) +
+        (c.missing_evidence ? " · 未签发" : "") + "</div>" +
+        '<details class="cp-fold"><summary>依据</summary>' +
+        '<div class="cp-meta">' + esc(c.text || "") + "</div>" +
+        '<div class="cp-meta">' + esc((c.evidence_ids || []).join(" + ") || "?") +
+        " ← " + esc((c.tool_call_ids || []).join(" + ") || "?") + "</div>" +
+        (c.missing_evidence ? '<div class="cp-meta">' + esc(c.missing_evidence) + "</div>" : "") +
+        "</details></div>";
     });
     html += "</div>";
 
-    html += '<div class="cp-section"><h4>EVIDENCE / TOOL CHAIN</h4>';
+    html += '<details class="cp-section cp-fold"><summary>证据与工具链 · ' +
+      evs.length + " / " + tools.length + "</summary>";
     evs.forEach(function (e) {
       var c = e.content || {};
       var cov = c.coverage == null ? "n/a" : c.coverage;
       var basis = c.coverage_basis ? " (" + c.coverage_basis + ")" : "";
       html += '<div class="cp-card"><b>' + esc(e.evidence_id) + "</b> " +
-        esc(e.evidence_type) + " · " + esc(c.metric) +
-        ' = <span class="cp-value">' + esc(c.value) + "</span>" +
-        '<div class="cp-meta">' + esc(c.convention || "") +
-        " · coverage " + esc(cov + basis) +
-        " · " + esc((e.locator || {}).file || "") + "</div></div>";
+        esc(c.metric) + ' = <span class="cp-value">' + esc(c.value) + "</span>" +
+        '<div class="cp-meta">coverage ' + esc(cov + basis) + "</div></div>";
     });
     tools.forEach(function (t) {
       html += '<div class="cp-card"><b>' + esc(t.tool_call_id) + "</b> " +
-        esc(t.tool_name) + '<div class="cp-meta">arguments ' +
-        esc(JSON.stringify(t.arguments || {})) + " · elapsed " +
+        esc(t.tool_name) + '<div class="cp-meta">' +
         esc(t.elapsed_ms == null ? "n/a" : t.elapsed_ms + " ms") + "</div></div>";
     });
-    html += '<div class="cp-chain">graph: ' + claims.length + " claims · " +
-      evs.length + " evidence · " + tools.length +
-      " tool calls · 数值由工具重跑核对，不由模型生成</div></div>";
-    html += '<div class="cp-foot">' +
-      (obj.gate === "not_applicable"
-        ? "该 claim 的轴不是寿命分数，t 只对其他模态生效。"
-        : (obj.status === "insufficient" || obj.status === "partial"
-          ? "只有 status=supported 的 claim 被签发；insufficient 只返回可核对边界和原因。"
-          : "回顾性口径：t 是允许寿命上限，不是在线预测时刻。")) +
-      "</div>";
+    html += "</details>";
 
     el("shm-copilot-answer").innerHTML = html;
   }
@@ -175,7 +163,7 @@
     updateURL();
     var btn = el("shm-copilot-ask");
     if (btn) btn.disabled = true;
-    status("正在编译问题、从 raw 重算，并让 verifier 重跑工具…", "");
+    status("计算中…", "");
 
     fetch("/api/ask", {
       method: "POST",
@@ -201,12 +189,74 @@
     });
   }
 
+  function applyContext(obj) {
+    var r = obj.resolved;
+    if (!r || !r.gid) return;
+    GID = r.gid;
+    DS = datasetFor(GID);
+    if (r.t != null) state.t = Math.max(0, Math.min(1, Number(r.t)));
+    var title = el("shm-copilot-title");
+    if (title) title.textContent = "证据约束分析 · " + GID;
+    var qInput = el("shm-copilot-q");
+    if (qInput && state.q) qInput.value = state.q;
+    var range = el("shm-copilot-range");
+    if (range) range.value = state.t;
+    var out = el("shm-copilot-t");
+    if (out) out.textContent = pct(state.t);
+    setT(state.t, false);
+    if (DS) selectDashboard();
+    updateURL();
+  }
+
+  function directAsk() {
+    if (state.busy) return;
+    var input = el("shm-direct-q");
+    var q = input ? input.value.trim() : "";
+    if (!q) {
+      open(true);
+      status("请输入问题，例如：L1-13 先查 AE t85 再查 PZT t85 做一致性判断", "");
+      return;
+    }
+    state.q = q;
+    state.busy = true;
+    open(true);
+    var panelQ = el("shm-copilot-q");
+    if (panelQ) panelQ.value = q;
+    var btn = el("shm-direct-ask");
+    if (btn) btn.disabled = true;
+    status("正在解析试件和 t，然后从 raw 重算…", "");
+
+    fetch("/api/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ gid: GID, question: q })
+    }).then(function (r) {
+      return r.json().then(function (obj) { return { ok: r.ok, obj: obj }; });
+    }).then(function (res) {
+      if (!res.ok) {
+        status("请求失败：" + (res.obj.detail || res.obj.message || "HTTP error"), "error");
+        return;
+      }
+      applyContext(res.obj);
+      if (res.obj.status === "ok" || res.obj.status === "partial" ||
+          res.obj.status === "insufficient") renderOk(res.obj);
+      else if (res.obj.status === "refused") renderRefused(res.obj);
+      else if (res.obj.status === "unsupported") renderUnsupported(res.obj);
+      else status("未知响应：" + JSON.stringify(res.obj), "error");
+    }).catch(function (err) {
+      status("请求失败：" + err, "error");
+    }).then(function () {
+      state.busy = false;
+      if (btn) btn.disabled = false;
+    });
+  }
+
   function buildUI() {
     var root = document.createElement("div");
     root.id = "shm-copilot";
     root.innerHTML =
       '<section id="shm-copilot-panel" hidden>' +
-        '<div class="cp-head"><div><b>证据约束分析 · ' + esc(GID) + '</b>' +
+        '<div class="cp-head"><div><b id="shm-copilot-title">证据约束分析 · ' + esc(GID) + '</b>' +
           "<small>raw → deterministic tool → verifier → claim</small></div>" +
           '<button class="cp-close" id="shm-copilot-close" aria-label="close">×</button></div>' +
         '<div class="cp-body">' +
@@ -219,11 +269,15 @@
           '<div class="cp-quick"><button data-t="0.62">62% · 拒答</button>' +
             '<button data-t="0.95">95% · 通过</button></div>' +
           '<button id="shm-copilot-ask">核验并回答</button>' +
-          '<div id="shm-copilot-status">选择 t，然后核验。' +
-            "t=0.62 应被拒，t=0.95 应通过；以 verifier 返回为准。</div>" +
+          '<div id="shm-copilot-status">待核验</div>' +
           '<div id="shm-copilot-answer"></div>' +
         "</div>" +
       "</section>" +
+      '<div id="shm-direct-bar">' +
+        '<input id="shm-direct-q" maxlength="500" autocomplete="off" ' +
+          'placeholder="直接问，例如 L1-13 的 AE/PZT t85 一致性">' +
+        '<button id="shm-direct-ask">提问</button>' +
+      "</div>" +
       '<button id="shm-copilot-toggle">AI 证据助手</button>';
     document.body.appendChild(root);
 
@@ -239,12 +293,21 @@
         if (ev.key === "Enter") { ev.preventDefault(); request(); }
       });
     }
+    var direct = el("shm-direct-q");
+    if (direct) {
+      direct.addEventListener("keydown", function (ev) {
+        if (ev.key === "Enter") { ev.preventDefault(); directAsk(); }
+      });
+    }
+    var directBtn = el("shm-direct-ask");
+    if (directBtn) directBtn.addEventListener("click", directAsk);
     Array.prototype.forEach.call(document.querySelectorAll(".cp-quick button"), function (b) {
       b.addEventListener("click", function () { setT(this.getAttribute("data-t"), true); });
     });
   }
 
   function selectDashboard() {
+    if (!DS) return;
     var tries = 0;
     function attempt() {
       var ds = el("dsSel"), gid = el("gidSel");

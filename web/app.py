@@ -61,31 +61,15 @@ _load_dotenv(ROOT / ".env")
 
 import tools.build_claim_graph as claim_graph  # noqa: E402
 from validate import validate_graph  # noqa: E402
-from web import planner  # noqa: E402
+from web import datasets, planner  # noqa: E402
 
 DASHBOARD = ROOT / "dashboard"
 WEB = Path(__file__).resolve().parent
 SCHEMA_PATH = ROOT / "schema" / "claim_evidence.schema.json"
 
-# The slice is intentionally small and explicit. Adding a dataset requires
-# a real raw-metric path and a validator runner, not just a UI entry.
-SUPPORTED = {
-    "L1-06": {"dataset": "L1", "label": "ReMAP C3 变幅 VA",
-              "tools": ("metric", "pzt", "workflow")},
-    "L1-13": {"dataset": "L1", "label": "ReMAP C3 变幅 VA",
-              "tools": ("metric", "pzt", "workflow")},
-    "L1-30": {"dataset": "L1", "label": "ReMAP C4 谱载",
-              "tools": ("fbg",)},
-    "L1-03": {"dataset": "L1", "label": "ReMAP C1 恒幅",
-              "tools": ("metric", "dfos", "pzt", "conflict")},
-    "spec1": {"dataset": "F-MOC", "label": "F-MOC spec1", "tools": ("fmoc",)},
-    "spec2": {"dataset": "F-MOC", "label": "F-MOC spec2", "tools": ("fmoc",)},
-    "spec3": {"dataset": "F-MOC", "label": "F-MOC spec3", "tools": ("fmoc",)},
-    "spec4": {"dataset": "F-MOC", "label": "F-MOC spec4", "tools": ("fmoc",)},
-    "spec5": {"dataset": "F-MOC", "label": "F-MOC spec5", "tools": ("fmoc",)},
-    "spec6": {"dataset": "F-MOC", "label": "F-MOC spec6", "tools": ("fmoc",)},
-    "spec7": {"dataset": "F-MOC", "label": "F-MOC spec7", "tools": ("fmoc",)},
-}
+# Data registry: all 29 L1 specimens plus F-MOC spec1–spec7. Each tool value
+# is backed by a raw runner; the registry decides which tools a gid may use.
+SUPPORTED = datasets.load_supported()
 
 _metric_cache: dict[tuple[str, str], tuple[dict, float]] = {}
 _metric_lock = threading.Lock()
@@ -112,8 +96,8 @@ def _metric(gid: str, dataset: str) -> tuple[dict, float]:
 
 
 class AskBody(BaseModel):
-    gid: str = Field(default="L1-06", min_length=1)
-    t: float = Field(default=0.95, ge=0.0, le=1.0)
+    gid: str | None = Field(default=None, min_length=1)
+    t: float | None = Field(default=None, ge=0.0, le=1.0)
     question: str | None = Field(default=None, max_length=500)
 
 
@@ -276,10 +260,40 @@ def _answer(graph: dict, tool: str) -> str:
     return f"{subject} 的工具输出已生成。"
 
 
-def _evaluate(gid: str, t: float, question: str | None = None) -> dict:
-    if gid not in SUPPORTED:
-        raise HTTPException(status_code=404, detail=f"unsupported gid: {gid}")
+def _evaluate(gid: str | None, t: float | None,
+              question: str | None = None) -> dict:
+    if gid is not None and gid not in SUPPORTED:
+        # A question that explicitly names a supported gid overrides the
+        # board fallback; an invalid board id alone is still a 404.
+        question_gid, question_source = planner.resolve_gid(
+            question, SUPPORTED, None,
+        )
+        if question_source != "question" or question_gid is None:
+            raise HTTPException(status_code=404, detail=f"unsupported gid: {gid}")
 
+    resolved_gid, resolved_t, resolution = planner.resolve_context(
+        question, SUPPORTED, gid, t,
+    )
+    if resolved_gid is None:
+        source = resolution["gid_source"]
+        if source == "multiple":
+            message = "问题里出现多个试件编号，系统不猜，请一次只问一个试件。"
+        elif source == "unknown":
+            message = "问题里的试件不在当前白名单，系统不猜，也不会回退到别的试件。"
+        else:
+            message = "问题里没有明确试件，也没有选中的看板试件；请写 L1-xx 或 specN。"
+        return {
+            "status": "unsupported",
+            "gid": None,
+            "t": resolved_t,
+            "question": question or "",
+            "message": message,
+            "resolved": {"gid": None, "t": resolved_t, **resolution},
+            "planner": {"intent": "unsupported", "tool": None, "gid": None},
+        }
+
+    gid = resolved_gid
+    t = resolved_t
     meta = SUPPORTED[gid]
     decision = planner.compile_question(question, gid, SUPPORTED)
     if decision.plan.intent == "unsupported":
@@ -291,6 +305,7 @@ def _evaluate(gid: str, t: float, question: str | None = None) -> dict:
             "question": question or "",
             "message": f"当前 {gid} 只支持 {labels} 的白名单查询；"
                        "预测、RUL、损伤类型与维修建议不在可签发范围内。",
+            "resolved": {"gid": gid, "t": t, **resolution},
             "planner": decision.as_dict(),
         }
 
@@ -341,6 +356,7 @@ def _evaluate(gid: str, t: float, question: str | None = None) -> dict:
                         if temporal else
                         "验证未通过：claim 的边界或工具重跑结果不一致，系统不签发 claim。"),
             "failed_checks": names,
+            "resolved": {"gid": gid, "t": t, **resolution},
             "planner": decision.as_dict(),
             "verification": {
                 "status": "fail",
@@ -371,6 +387,7 @@ def _evaluate(gid: str, t: float, question: str | None = None) -> dict:
         "gid": gid,
         "t": t,
         "question": graph["question"],
+        "resolved": {"gid": gid, "t": t, **resolution},
         "answer": _answer(graph, tool),
         "planner": decision.as_dict(),
         "graph": graph,
@@ -400,8 +417,8 @@ def supported() -> dict:
 
 @app.get("/api/ask")
 def ask_get(
-    gid: str = Query(default="L1-06"),
-    t: float = Query(default=0.95, ge=0.0, le=1.0),
+    gid: str | None = Query(default=None),
+    t: float | None = Query(default=None, ge=0.0, le=1.0),
     q: str | None = Query(default=None, max_length=500),
 ) -> dict:
     return _evaluate(gid, t, q)

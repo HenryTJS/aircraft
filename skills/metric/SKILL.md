@@ -32,11 +32,11 @@
 
 ## 算法
 
-1. `ae_frames.group_frames(gid, root=E:/l1, frame_s=600)` 从原始 `.DTA` 建帧，得到每帧 hit 数；
+1. `ae_frames.group_frames(gid, root=E:/l1, frame_s=600)` 从原始 `.DTA` 建帧，得到每帧 hit 数；短 C4 组按 `FRAME_S_BY_GID` 用 60/30/60 s（L1-30/L1-34/L1-36），避免 600 s 只剩 2–13 帧；
 2. `ae_cycle.group_load(gid, root=E:/l1)` 扫原始 FBG，得到加载/停机标签；
 3. `ae_cycle._ratio_on_grid` 把加载标签映射到 AE 帧，得到 `g_load`；
 4. `n_f` 用项目静态兜底表（`datasets.N_F_FALLBACK`），不读 results；
-5. `cycle = cumsum(g_load × 600 × f)`，`HI = cumsum(hits) / total`；
+5. `cycle = cumsum(g_load × frame_s × f)`，`HI = cumsum(hits) / total`；
 6. 在 `HI=0.50/0.85` 处插值，得到 t50/t85。
 
 ### `.pridb` 路径

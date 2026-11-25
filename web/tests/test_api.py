@@ -25,7 +25,10 @@ class TestAssistantAPI(unittest.TestCase):
     def test_health(self):
         r = self.client.get("/api/health")
         self.assertEqual(r.status_code, 200)
-        self.assertIn("L1-06", r.json()["supported"])
+        supported = r.json()["supported"]
+        self.assertIn("L1-06", supported)
+        self.assertEqual(len([g for g in supported if g.startswith("L1-")]), 29)
+        self.assertEqual(len([g for g in supported if g.startswith("spec")]), 7)
 
     def test_t062_refused(self):
         r = self.client.post("/api/ask", json={"gid": "L1-06", "t": 0.62})
@@ -247,6 +250,77 @@ class TestAssistantAPI(unittest.TestCase):
         self.assertEqual(body["gate"], "temporal")
         self.assertIn("temporal_leakage", body["failed_checks"])
         self.assertNotIn("graph", body)
+
+    def test_direct_question_resolves_gid_and_defaults_t(self):
+        r = self.client.post("/api/ask", json={
+            "question": "L1-13 的 t85 是多少",
+        })
+        self.assertEqual(r.status_code, 200)
+        body = r.json()
+        self.assertEqual(body["status"], "ok")
+        self.assertEqual(body["gid"], "L1-13")
+        self.assertEqual(body["resolved"]["gid_source"], "question")
+        self.assertEqual(body["resolved"]["t_source"], "default")
+        self.assertAlmostEqual(body["t"], 1.0)
+
+    def test_direct_question_adjacent_chinese_gid(self):
+        r = self.client.post("/api/ask", json={
+            "question": "L1-13的AEt85是多少？",
+        })
+        self.assertEqual(r.status_code, 200)
+        body = r.json()
+        self.assertEqual(body["status"], "ok")
+        self.assertEqual(body["gid"], "L1-13")
+        self.assertEqual(body["resolved"]["gid_source"], "question")
+
+    def test_direct_question_t_percent_can_trigger_refusal(self):
+        r = self.client.post("/api/ask", json={
+            "question": "L1-13 在 80% 时 t85 的结论是什么",
+        })
+        self.assertEqual(r.status_code, 200)
+        body = r.json()
+        self.assertEqual(body["status"], "refused")
+        self.assertEqual(body["gate"], "temporal")
+        self.assertAlmostEqual(body["t"], 0.80)
+        self.assertNotIn("graph", body)
+        self.assertIn("temporal_leakage", body["failed_checks"])
+
+    def test_direct_question_without_gid_is_unsupported(self):
+        r = self.client.post("/api/ask", json={"question": "t85 是多少"})
+        self.assertEqual(r.status_code, 200)
+        body = r.json()
+        self.assertEqual(body["status"], "unsupported")
+        self.assertEqual(body["resolved"]["gid_source"], "missing")
+        self.assertIsNone(body["gid"])
+
+    def test_direct_question_multiple_gids_are_unsupported(self):
+        r = self.client.post("/api/ask", json={
+            "question": "L1-13 和 L1-06 的 t85 对比",
+        })
+        self.assertEqual(r.status_code, 200)
+        body = r.json()
+        self.assertEqual(body["status"], "unsupported")
+        self.assertEqual(body["resolved"]["gid_source"], "multiple")
+
+    def test_direct_question_unknown_gid_is_unsupported(self):
+        r = self.client.post("/api/ask", json={
+            "question": "L1-99 的 t85 是多少",
+        })
+        self.assertEqual(r.status_code, 200)
+        body = r.json()
+        self.assertEqual(body["status"], "unsupported")
+        self.assertEqual(body["resolved"]["gid_source"], "unknown")
+
+    def test_direct_question_gid_overrides_invalid_body_gid(self):
+        r = self.client.post("/api/ask", json={
+            "gid": "L1-99", "t": 0.95,
+            "question": "L1-13 的 t85 是多少",
+        })
+        self.assertEqual(r.status_code, 200)
+        body = r.json()
+        self.assertEqual(body["status"], "ok")
+        self.assertEqual(body["gid"], "L1-13")
+        self.assertEqual(body["resolved"]["gid_source"], "question")
 
     def test_unknown_gid(self):
         r = self.client.post("/api/ask", json={"gid": "L1-99", "t": 0.95})
