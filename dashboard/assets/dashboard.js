@@ -1422,6 +1422,19 @@
     requestAnimationFrame(loop);
   }
 
+  // 供证据助手读取“当前回放位置”，用于 as-of 前缀查询；不暴露整场汇总值。
+  window.SHM_CURRENT = function () {
+    if (!S.data || !S.data.t) return null;
+    var f = Math.max(0, Math.min((S.data.nfr || 1) - 1, Math.floor(S.frame)));
+    var cyc = S.data.cyc ? S.data.cyc[f] : S.data.t[f];
+    return {
+      gid: S.gid,
+      frame: f,
+      cycle: Number(cyc),
+      t: Number(S.data.t[f])
+    };
+  };
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();

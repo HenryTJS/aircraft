@@ -61,7 +61,7 @@ _load_dotenv(ROOT / ".env")
 
 import tools.build_claim_graph as claim_graph  # noqa: E402
 from validate import validate_graph  # noqa: E402
-from web import datasets, planner  # noqa: E402
+from web import asof, datasets, planner  # noqa: E402
 
 DASHBOARD = ROOT / "dashboard"
 WEB = Path(__file__).resolve().parent
@@ -427,6 +427,23 @@ def ask_get(
 @app.post("/api/ask")
 def ask_post(body: AskBody) -> dict:
     return _evaluate(body.gid, body.t, body.question)
+
+
+@app.get("/api/asof")
+def asof_get(
+    gid: str = Query(default="L1-13"),
+    cycle: float | None = Query(default=None, ge=0.0),
+    at_s: float | None = Query(default=None, ge=0.0),
+) -> dict:
+    """Return only prefix state up to the requested cycle or elapsed second."""
+    try:
+        return asof.state(gid, cycle=cycle, at_s=at_s)
+    except KeyError:
+        raise HTTPException(status_code=404, detail=f"unsupported gid: {gid}")
+    except FileNotFoundError:
+        raise HTTPException(status_code=503, detail=f"prefix not built for {gid}")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 
 @app.get("/data/index.js")

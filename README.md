@@ -25,7 +25,7 @@
 | 3B QLoRA | **未开始** |
 | case 级评测 | **v0 已跑**：30 题 5 类 + 11 题 hard set；30 题规则饱和，hard set 首轮 fallback 5/10、LLM 6/10，补跨 gid / 报告审计 / 时间门守卫后 fallback 9/10、LLM 10/10；新增 F-MOC 题后 fallback 10/11（H01 仍失败）；仍不是独立证据 |
 | dashboard | **已迁入** `aircraft/dashboard`；`data/` 不入库，生成器通过 `AIRCRAFT_ROOT` 写回 |
-| `web/app.py` | **29 个 L1 gid + F-MOC spec1–7 + 受限 planner**：FastAPI 壳 + `/api/ask` + 时间门 + 问题输入 + 证据抽屉；`cases/l1.json` 注册 29 组，`web/datasets.py` 合并 F-MOC；支持 `ok/partial/insufficient/refused/unsupported`。顶部 direct-ask 可从问题解析 `L1-xx`/`specN` 与 `t=0.8`/`在 80% 时`，响应带 `resolved`；问题没写 t 时默认 `t=1.0` 全寿命回顾，滑杆只作面板提问的 fallback |
+| `web/app.py` | **29 个 L1 gid + F-MOC spec1–7 + 受限 planner**：FastAPI 壳 + `/api/ask` + `/api/asof` + 时间门 + 问题输入 + 证据抽屉；`cases/l1.json` 注册 29 组，`web/datasets.py` 合并 F-MOC；支持 `ok/partial/insufficient/refused/unsupported`。顶部 direct-ask 可从问题解析 `L1-xx`/`specN` 与 `t=0.8`/`在 80% 时`，响应带 `resolved`；问题没写 t 时默认 `t=1.0` 全寿命回顾，滑杆只作面板提问的 fallback。`/api/asof` 返回 L1-13 与 main-016 查询时刻之前的前缀状态，不返回 `t85` |
 | 调研语料 | 已并入 `survey/`：54 篇、1,154 页 |
 | F-MOC 接入 | 7 个 `.pridb`；`t85_full` 58.8–84.4%，`t85_dic` 81.4–86.2%（DIC 末帧为 test_end 下界）；已接 claim/API，`spec2` 返回 `partial`；非 L1 口径，见 `docs/fmoc_initial.md` |
 
@@ -113,6 +113,7 @@ aircraft/
 - [ ] claim ↔ 图联动：`scope.lifetime_min/max` 高亮曲线段；点曲线段弹出 `tool_call → 文件 → 参数 → 重算值`。
 - [ ] “就当前时刻提问”：游标处一键把 `{gid, t}` 送进对话。
 - [x] 顶部 direct-ask：问题显式写 `L1-xx`/`specN` 才切试件，没写用当前看板，多个/未知 gid 拒答；`t=0.8`/`在 80% 时` 覆盖 t，未写默认 `t=1.0` 全寿命回顾；响应带 `resolved.gid/t/source`。
+- [x] L1-13 / main-016 as-of 前缀：`tools/build_prefix.py` 从 `_l1cyc`/`_l1ae_frames`/`pzt_crosslab.csv` 生成 `prefix/L1-13.npz`；`tools/build_prefix_main.py` 从 `016声发射.csv` 生成 `prefix/main-016.npz`；`/api/asof` 只取查询 cycle 之前的帧，`contains_future=false`，不返回 `t85/n_f`；前端“当前时刻状态”按钮覆盖 L1-13，main-016 先走 API；7 个测试含截断未来不变性。仍只有两条轨迹，不是全量在线。
 - [ ] RUL 区间带：point + lo/hi + 覆盖/宽度；单独卡片，不与 t85 同轴。
 - [ ] 报告导出 PDF/JSON。
 
@@ -283,5 +284,6 @@ skill 层不直接读 `results/`；外部盘未挂载时，raw-data 测试会自
 - [`dashboard/README.md`](dashboard/README.md)：回放看板、数据集与重建方式
 - [`docs/l1_c1c2_canonical.csv`](docs/l1_c1c2_canonical.csv)：C1/C2 14 组 anchor 标准 t50/t85
 - [`docs/fmoc_initial.md`](docs/fmoc_initial.md)：F-MOC 7 个试件的初析、限制与下一步
+- [`docs/asof_prefix.md`](docs/asof_prefix.md)：L1-13 / main-016 在线前缀切片、API 与不泄漏检查
 - `D:\shm\README.md` 与 `D:\shm\仓库地图.md`：数据、分析、结果口径
 - `D:\rul\README.md`：SN-CQR、可部署口径与边界

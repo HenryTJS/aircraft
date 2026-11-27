@@ -118,9 +118,10 @@ L1-36 的差异来自 43 帧 vs canonical 42 帧的边界取法。看板仍显�
 
 - `tests.test_validate`：10/10
 - `tests.test_skill_claims`：9/9
-- `web.tests.test_planner`：33/33
-- `web.tests.test_api`：27/27
-- 合计 79/79 通过；2026-11-25 全量跑分两次：core 19/19 44.364 s，web 60/60 217.608 s。
+- `web.tests.test_planner`：34/34
+- `web.tests.test_api`：28/28
+- `web.tests.test_asof`：7/7
+- 合计 88/88 通过；2026-11-27 全量 197.688 s。
 
 浏览器点击验证：
 
@@ -129,6 +130,12 @@ L1-36 的差异来自 43 帧 vs canonical 42 帧的边界取法。看板仍显�
 - L1-06 PZT：`不签发 · 0 failed / 9 checks`，t85=100 删失，明确写“不签发点估计”。
 - L1-03 conflict：`部分签发 · 0 failed / 21 checks`，5 条 claim，答案明确“不能给出四个可比的 t85”。
 - direct-ask：从 L1-06 页面输入 L1-13 workflow 问题，自动切 gid，`已核验通过 · 0 failed / 20 checks`；再输入“在 80% 时”问题，时间门拒答，无 graph。
+
+### 2.10 L1-13 / main-016 as-of 前缀
+
+`/api/asof` 不读全寿命 `t85`，只读 `prefix/L1-13.npz` 或 `prefix/main-016.npz` 中查询 cycle 之前的帧。响应显式写 `boundary.t85_available=false`、`contains_future=false`，不返回 `n_f` 或全寿命总 hits。L1-13 的 `PZT` 取最近一个不晚于查询 cycle 的状态，`age_cycles` 明确标注落后量；main-016 返回 `frame_energy`、`cum_energy`、`ce_log`，这是记录进度，不是损伤度或 RUL。
+
+`test_future_invariance` 把 L1-13 prefix 截到 100000 再查同一 cycle，`state`、`pzt`、`asof` 与完整 prefix 完全一致；`test_main_future_invariance` 对 main-016 做同样检查。浏览器端从 L1-13 看板点“当前时刻状态”，实测返回约 `230,388 cycle`、`9,247,312` 累计 hits、PZT `D=0.036`、`ΔTOF=2.00 µs`，无 `t85`。main-016 目前通过 API 查询，尚未接主样本看板。这两条仍是单条轨迹，不是全量在线监测。
 
 ## 3. 未证实与边界
 
@@ -149,14 +156,18 @@ L1-36 的差异来自 43 帧 vs canonical 42 帧的边界取法。看板仍显�
 13. **F-MOC 只对 spec2 做了端到端 API 验证**。`spec1`–`spec7` 都在 `SUPPORTED` 且走同一 `skills/fmoc` 路径，但本轮的 claim/validator/API 实测只覆盖 `spec2`；其余试件未逐个跑通，不能写成“7 个试件全部验收”。
 14. **workflow 浏览器点击已做一次**。2026-11-25 用 headless Edge + CDP 点击 L1-13 workflow，t=.95 返回 `已核验通过 · 0 failed / 20 checks`，3 条 claim；t=.80 返回时间门拒答，无 graph。截图在 `docs/evidence/workflow_ok.png` 和 `docs/evidence/workflow_refused.png`。没有做多浏览器或重复稳定性测试。
 15. **direct-ask 的上下文解析是规则，不是语义理解**。`resolve_gid()` 只认 `L1-xx`/`specN`；`resolve_t()` 只认 `t=0.8` 或“在/当/允许 80%”。没写 gid 用当前看板，没写 t 默认 1.0；多个/未知 gid 拒答。它不解决指代、省略试件或“上一个问题”的上下文；这些仍会拒答或落到 fallback。
-16. **29 个 L1 gid 是“注册完成”，不是“逐个端到端验收”**。`cases/l1.json` 注册 29 组，`web/datasets.py` 合并出 36 个 gid；`test_resolve_all_l1_gids` 只验证 planner 能解析，未对 29 组逐个跑 claim/validator/API。已实测代表组：L1-36/30/34（C4 短帧）、L1-23（C1）、L1-49（C2）、L1-13（C3）。短 C4 组 L1-36 的 raw 84.84% 与看板 84.70% 差 0.14 pp，报告必须写帧宽和来源。
+16. **29 个 L1 gid 已逐个跑过 claim/validator/API，但仍不是物理正确性验收**。`cases/l1.json` 注册 29 组，`web/datasets.py` 合并出 36 个 gid；`docs/l1_coverage.md` 记录 29/29 端到端。短 C4 组 L1-30/L1-34/L1-36 用 60/30/60 s 帧，L1-36 raw 84.84% 与看板 84.70% 差 0.14 pp；报告必须写帧宽和来源。
 
 17. **Dashboard 的 PZT 面板是显示层，不是新的 claim 工具**。`dashboard/data/pzt.js` 由 `tools/build_dashboard_pzt.py` 从 `D:/shm/l1/results/pzt_crosslab.csv` 与 `pzt_crosslab_summary.csv` 生成，覆盖 17 个 L1 gid；没有 PZT 的组显示“未采 PZT”。面板标题已写“离线汇总”，但它的曲线不是 API 或 validator 的 raw 重算结果，不能当作 claim 证据。
 18. **PZT 面板的健康行是补出来的**。L1 数据包的 `chans` 只有 AE/FBG/HI 三行，`buildChanTable()` 在数据包路径额外追加 PZT 行；主样本路径仍走静态 `CHAN_HTML0`。如果以后数据包 `chans` 自带 PZT，会出现重复行，需要去重。
 19. **助手减解释后仍不是纯大屏**。默认不打开助手，claim 卡只显示 ID、值、状态、允许上限；证据/工具链折叠；`语义编译` 行已从主面板移除。但回答正文仍保留“数值只做一致性检查”等必要解释，这是审计入口，不是装饰。浏览器 CDP 实测 L1-13 workflow：`已核验通过 · 0 failed / 20 checks`，7 张 claim 卡，未出现“语义编译”字样；只做了 headless Edge，无多浏览器稳定性测试。
 
+20. **as-of 只覆盖 L1-13 与 main-016**。L1-13 prefix 由 `_l1cyc`/`_l1ae_frames`/`pzt_crosslab.csv` 生成；main-016 prefix 由 `016声发射.csv` 的 `SpectralEnergy` 生成；其它 L1 组、main 其余组、L2、F-MOC 没有前缀索引。它不是全量在线监测。
+21. **as-of 不是 RUL**。L1-13 返回当前 cycle、累计 hits、hit rate 和最近 PZT 状态；main-016 返回当前 cycle、窗能量、累积能量和 CElog，不返回 `t85`、剩余寿命或失效概率。看板上的曲线仍是回顾性展示，不能因为查询了当前 cycle 就当成在线预测。
+22. **as-of 的前缀末帧可能略早于看板当前帧**。看板数据包与 `_l1cyc` 缓存来自不同导出批次；`searchsorted` 取不晚于查询时刻的最后一帧，宁可少算，不使用未来帧。这个差异已写进 `docs/asof_prefix.md`。
+
 ## 结论
 
 接入在“工具数值 → claim/evidence → validator → planner/API/前端”这条链上是通的，F-MOC `spec2` 返回 `partial`，C001 可签、C002 只标边界；C1 冲突 case 已把“四个模态不可比”落成 5 条 claim 和 21 项 validator 检查；L1-13 的最小两步 workflow 已把 AE t85、PZT t85 和派生 `t85_gap_pp` 放进同一张图，validator 从两条 evidence 重算差值；direct-ask 已能从问题解析 gid/t 并自动切换看板，同时不猜未知试件。
 
-29 个 L1 gid 已注册，`/api/ask` 不再手写白名单；短试验的 60/30 s 帧例外已写进 `skills/metric` 和文档。但这不是“物理正确性验收”。DFOS 的 coverage 补值、PZT 的步进口径、F-MOC 的 test_end 下界、同源重跑和 LLM 语义质量都仍是明确边界；workflow 只覆盖固定 AE+PZT 两步，不能外推成任意编排。下一轮应做 P4 demo 和更窄的多步扩展，而不是继续堆单工具 gid。
+29 个 L1 gid 已注册并逐个跑过 claim/validator/API，`/api/ask` 不再手写白名单；短试验的 60/30 s 帧例外已写进 `skills/metric` 和文档。L1-13 的 as-of 前缀切片已证明“只读查询时刻之前”，但仍是单条、不是全量在线监测。这些都不是“物理正确性验收”：DFOS 的 coverage 补值、PZT 的步进口径、F-MOC 的 test_end 下界、同源重跑和 LLM 语义质量都仍是明确边界；workflow 只覆盖固定 AE+PZT 两步，不能外推成任意编排。下一轮应做 P4 demo 和 main 在线材料线，而不是继续堆单工具 gid。

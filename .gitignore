@@ -10,6 +10,7 @@ skills/cache/
 survey/pdfs/
 docs/refs/
 dashboard/data/
+prefix/
 out/
 *.log
 

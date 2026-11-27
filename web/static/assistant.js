@@ -251,6 +251,72 @@
     });
   }
 
+  function renderAsof(obj) {
+    var s = obj.state || {};
+    var a = obj.asof || {};
+    var p = obj.pzt || {};
+    var b = obj.boundary || {};
+    status("在线前缀 · 截至 cycle " + Number(s.cycle || 0).toLocaleString(), "ok");
+
+    var html = '<div class="cp-answer-text">只读取查询时刻之前的帧；不返回 t85，也不使用全寿命总 hits。</div>';
+    html += '<div class="cp-card"><b>当前时刻</b> ' +
+      '<span class="cp-value">' + Number(s.cycle || 0).toLocaleString() + " cycle</span>" +
+      '<div class="cp-meta">' + esc(a.elapsed_h == null ? "n/a" : a.elapsed_h + " h") +
+      " · frame " + esc(s.frame_index == null ? "n/a" : s.frame_index) + "</div></div>";
+    if (s.cum_hits != null) {
+      html += '<div class="cp-card"><b>累计事件</b> ' +
+        '<span class="cp-value">' + Number(s.cum_hits || 0).toLocaleString() + "</span>" +
+        '<div class="cp-meta">本帧 ' + Number(s.frame_hits || 0).toLocaleString() +
+        " · " + esc(s.hit_rate_h == null ? "n/a" : Number(s.hit_rate_h).toFixed(1)) + " /h</div></div>";
+    } else if (s.cum_energy != null) {
+      html += '<div class="cp-card"><b>累积能量</b> ' +
+        '<span class="cp-value">' + Number(s.cum_energy || 0).toLocaleString() + "</span>" +
+        '<div class="cp-meta">本窗 ' + Number(s.frame_energy || 0).toFixed(1) +
+        " · CElog " + Number(s.ce_log || 0).toFixed(1) + "</div></div>";
+    }
+    if (p.cycle != null) {
+      html += '<div class="cp-card"><b>PZT 最近状态</b> ' +
+        '<span class="cp-value">D ' + esc(Number(p.D).toFixed(3)) + "</span>" +
+        '<div class="cp-meta">cycle ' + Number(p.cycle).toLocaleString() +
+        " · 落后 " + Number(p.age_cycles || 0).toLocaleString() + " cycle" +
+        (p.tof_drift_us == null ? "" : " · ΔTOF " + Number(p.tof_drift_us).toFixed(2) + " µs") +
+        "</div></div>";
+    }
+    html += '<div class="cp-card"><b>边界</b><div class="cp-meta">' +
+      esc(b.reason || "prefix only") + "</div></div>";
+    el("shm-copilot-answer").innerHTML = html;
+  }
+
+  function asofAsk() {
+    var ctx = window.SHM_CURRENT ? window.SHM_CURRENT() : null;
+    if (!ctx) {
+      status("当前看板尚未加载试件", "error");
+      return;
+    }
+    if (ctx.gid !== "L1-13" && ctx.gid !== "016" && ctx.gid !== "main-016") {
+      status("当前只有 L1-13 与 main-016 建了在线前缀，其他试件仍是离线回放", "error");
+      return;
+    }
+    var btn = el("shm-asof");
+    if (btn) btn.disabled = true;
+    status("读取当前前缀…", "");
+    fetch("/api/asof?gid=" + encodeURIComponent(ctx.gid) +
+          "&cycle=" + encodeURIComponent(ctx.cycle))
+      .then(function (r) {
+        return r.json().then(function (obj) { return { ok: r.ok, obj: obj }; });
+      }).then(function (res) {
+        if (!res.ok) {
+          status("as-of 失败：" + (res.obj.detail || res.obj.message || "HTTP error"), "error");
+          return;
+        }
+        renderAsof(res.obj);
+      }).catch(function (err) {
+        status("as-of 失败：" + err, "error");
+      }).then(function () {
+        if (btn) btn.disabled = false;
+      });
+  }
+
   function buildUI() {
     var root = document.createElement("div");
     root.id = "shm-copilot";
@@ -269,6 +335,7 @@
           '<div class="cp-quick"><button data-t="0.62">62% · 拒答</button>' +
             '<button data-t="0.95">95% · 通过</button></div>' +
           '<button id="shm-copilot-ask">核验并回答</button>' +
+          '<button id="shm-asof" class="cp-asof">当前时刻状态</button>' +
           '<div id="shm-copilot-status">待核验</div>' +
           '<div id="shm-copilot-answer"></div>' +
         "</div>" +
@@ -284,6 +351,8 @@
     el("shm-copilot-toggle").addEventListener("click", function () { open(); });
     el("shm-copilot-close").addEventListener("click", function () { open(false); });
     el("shm-copilot-ask").addEventListener("click", request);
+    var asofBtn = el("shm-asof");
+    if (asofBtn) asofBtn.addEventListener("click", asofAsk);
     el("shm-copilot-range").addEventListener("input", function () {
       setT(this.value, false);
     });
@@ -368,5 +437,5 @@
     init();
   }
 
-  window.SHM_COPILOT = { setT: setT, ask: request, open: open };
+  window.SHM_COPILOT = { setT: setT, ask: request, asof: asofAsk, open: open };
 })();
